@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPL Player Photo Scraper</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: #fff;
+            padding: 20px;
+            margin: 0;
+        }
+
+        h1 {
+            color: #60a5fa;
+            text-align: center;
+        }
+
+        .instructions {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .instructions h2 {
+            color: #fbbf24;
+            margin-top: 0;
+        }
+
+        .instructions ol {
+            line-height: 1.8;
+        }
+
+        .instructions code {
+            background: #334155;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        .output-box {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 12px;
+            max-width: 800px;
+            margin: 20px auto;
+        }
+
+        .output-box h2 {
+            color: #34d399;
+            margin-top: 0;
+        }
+
+        textarea {
+            width: 100%;
+            height: 300px;
+            background: #0f172a;
+            color: #fff;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        .script-box {
+            background: #0f172a;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+
+        .script-box pre {
+            margin: 0;
+            white-space: pre-wrap;
+            font-size: 11px;
+            color: #94a3b8;
+        }
+
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+
+        button:hover {
+            background: #2563eb;
+        }
+
+        .team-links {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .team-links a {
+            background: #334155;
+            color: #fff;
+            text-decoration: none;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        .team-links a:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🏏 IPL Player Photo Scraper</h1>
+
+    <div class="instructions">
+        <h2>📋 Instructions</h2>
+        <ol>
+            <li><strong>Open each IPL team page</strong> (links below) in a new tab</li>
+            <li><strong>Open Developer Console</strong> (Press F12, go to Console tab)</li>
+            <li><strong>Paste the script below</strong> and press Enter</li>
+            <li><strong>Copy the JSON output</strong> and paste it in the box below</li>
+            <li>Repeat for all 10 teams, then click "Combine All Results"</li>
+        </ol>
+
+        <h3>Team Squad Pages:</h3>
+        <div class="team-links">
+            <a href="https://www.iplt20.com/teams/chennai-super-kings/squad" target="_blank">CSK</a>
+            <a href="https://www.iplt20.com/teams/mumbai-indians/squad" target="_blank">MI</a>
+            <a href="https://www.iplt20.com/teams/royal-challengers-bengaluru/squad" target="_blank">RCB</a>
+            <a href="https://www.iplt20.com/teams/kolkata-knight-riders/squad" target="_blank">KKR</a>
+            <a href="https://www.iplt20.com/teams/sunrisers-hyderabad/squad" target="_blank">SRH</a>
+            <a href="https://www.iplt20.com/teams/rajasthan-royals/squad" target="_blank">RR</a>
+            <a href="https://www.iplt20.com/teams/delhi-capitals/squad" target="_blank">DC</a>
+            <a href="https://www.iplt20.com/teams/punjab-kings/squad" target="_blank">PBKS</a>
+            <a href="https://www.iplt20.com/teams/lucknow-super-giants/squad" target="_blank">LSG</a>
+            <a href="https://www.iplt20.com/teams/gujarat-titans/squad" target="_blank">GT</a>
+        </div>
+
+        <h3>Script to paste in Console:</h3>
+        <div class="script-box">
+            <pre id="extractScript">// Scroll to load all players first, then run this:
+(async () => {
+    // Scroll through page to load all images
+    for(let i = 0; i < 10; i++) {
+        window.scrollBy(0, 500);
+        await new Promise(r => setTimeout(r, 300));
+    }
+    window.scrollTo(0, 0);
+    await new Promise(r => setTimeout(r, 500));
+    
+    // Extract player data
+    const players = {};
+    document.querySelectorAll('img').forEach(img => {
+        const src = img.src;
+        if (src.includes('IPLHeadshot')) {
+            const match = src.match(/IPLHeadshot\d+\/(\d+)\.png/);
+            if (match) {
+                const id = match[1];
+                const card = img.closest('a') || img.parentElement;
+                let name = card?.innerText?.split('\n')[0]?.trim();
+                if (name && name.length > 1 && name.length < 50) {
+                    // Proper case the name
+                    name = name.split(' ').map(w => 
+                        w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()
+                    ).join(' ');
+                    players[name] = parseInt(id);
+                }
+            }
+        }
+    });
+    
+    console.log('Found', Object.keys(players).length, 'players');
+    console.log(JSON.stringify(players, null, 2));
+    return players;
+})();</pre>
+        </div>
+        <button onclick="copyScript()">📋 Copy Script</button>
+    </div>
+
+    <div class="output-box">
+        <h2>📥 Paste Results Here</h2>
+        <p>Paste the JSON from each team (one at a time):</p>
+        <textarea id="input" placeholder='{"MS Dhoni": 57, "Ruturaj Gaikwad": 102, ...}'></textarea>
+        <br>
+        <button onclick="addToResults()">➕ Add Team Results</button>
+        <button onclick="clearAll()">🗑️ Clear All</button>
+        <button onclick="generateCode()">✨ Generate playerPhotos.js Code</button>
+    </div>
+
+    <div class="output-box">
+        <h2>📊 Combined Results (<span id="playerCount">0</span> players)</h2>
+        <textarea id="output" readonly placeholder="Combined results will appear here..."></textarea>
+        <br>
+        <button onclick="copyOutput()">📋 Copy Output</button>
+    </div>
+
+    <script>
+        let allPlayers = {};
+
+        function copyScript() {
+            const script = document.getElementById('extractScript').innerText;
+            navigator.clipboard.writeText(script);
+            alert('Script copied to clipboard!');
+        }
+
+        function addToResults() {
+            try {
+                const input = document.getElementById('input').value.trim();
+                if (!input) return alert('Please paste JSON data first');
+
+                const data = JSON.parse(input);
+                Object.assign(allPlayers, data);
+
+                document.getElementById('playerCount').innerText = Object.keys(allPlayers).length;
+                document.getElementById('output').value = JSON.stringify(allPlayers, null, 2);
+                document.getElementById('input').value = '';
+
+                alert('Added ' + Object.keys(data).length + ' players. Total: ' + Object.keys(allPlayers).length);
+            } catch (e) {
+                alert('Error parsing JSON: ' + e.message);
+            }
+        }
+
+        function clearAll() {
+            allPlayers = {};
+            document.getElementById('output').value = '';
+            document.getElementById('input').value = '';
+            document.getElementById('playerCount').innerText = '0';
+        }
+
+        function generateCode() {
+            const entries = Object.entries(allPlayers)
+                .sort((a, b) => a[0].localeCompare(b[0]))
+                .map(([name, id]) => `    "${name}": ${id}`)
+                .join(',\n');
+
+            const code = `// VERIFIED Player IDs - Extracted from IPL website
+// Total: ${Object.keys(allPlayers).length} players
+const PLAYER_IDS = {
+${entries}
+};`;
+
+            document.getElementById('output').value = code;
+            alert('Generated code for ' + Object.keys(allPlayers).length + ' players. Copy this and share with the assistant!');
+        }
+
+        function copyOutput() {
+            const output = document.getElementById('output').value;
+            navigator.clipboard.writeText(output);
+            alert('Copied to clipboard!');
+        }
+    </script>
+</body>
+
+</html>

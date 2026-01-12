@@ -1,0 +1,8 @@
+{
+  "purse": 120,
+  "minSquad": 18,
+  "maxSquad": 25,
+  "maxRetention": 5,
+  "retentionCost": [15, 11, 7, 4, 4],
+  "bidIncrement": 0.25
+}

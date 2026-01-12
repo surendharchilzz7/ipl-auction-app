@@ -1,0 +1,12 @@
+services:
+  # Backend Service
+  - type: web
+    name: auction-backend
+    env: node
+    plan: free
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && node server.js
+    envVars:
+      - key: NODE_VERSION
+        value: 20.16.0
+    autoDeploy: true
