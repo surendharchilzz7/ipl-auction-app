@@ -682,9 +682,24 @@ export default function Auction({ room }) {
   };
 
   return (
-    <div className="auction-container" style={{ minHeight: '100vh', padding: 16, fontFamily: 'system-ui, sans-serif' }}>
+    <div className="auction-container" style={{
+      height: '100vh',
+      background: 'var(--bg-dark)',
+      fontFamily: '"Outfit", sans-serif',
+      display: 'flex',
+      flexDirection: 'column',
+      overflow: 'hidden'
+    }}>
       <VoiceChat roomId={room.id} />
-      <div style={{ maxWidth: 1400, margin: '0 auto', paddingBottom: 100 }}>
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        padding: 16,
+        maxWidth: 1600,
+        margin: '0 auto',
+        width: '100%'
+      }}>
 
         {/* Top Ad Banner (Mobile Only - usually good for revenue) */}
         <div className="mobile-only-ad" style={{ marginBottom: 16, display: 'none' }}>
@@ -1597,15 +1612,16 @@ export default function Auction({ room }) {
           display: 'flex',
           flexDirection: 'column',
           height: '100%',
-          gap: isMobile ? 4 : 16 // Tighter gap on mobile
+          gap: isMobile ? 4 : 8 // Tighter gap on mobile and desktop
         }}>
           <div style={{
             flex: 1,
             position: 'relative',
             display: 'flex',
-            flexDirection: 'column'
+            flexDirection: 'column',
+            justifyContent: 'center' // Center content vertically
           }}>
-            {/* Player Card takes main space - Will resize in component */}
+            {/* Player Card - Auto height */}
             <div style={{ flex: 1, minHeight: 0 }}>
               <PlayerCard
                 player={room.currentPlayer}
@@ -1616,18 +1632,14 @@ export default function Auction({ room }) {
                 myTeam={myTeam}
                 roomId={room.id}
                 lastBidTeamId={room.lastBidTeamId}
+                bidEndsAt={room.bidEndsAt}
               />
-            </div>
-
-            {/* Timer below card */}
-            <div style={{ marginTop: 16 }}>
-              <Timer endsAt={room.bidEndsAt} duration={20} />
             </div>
           </div>
         </div>
 
         {/* Right Side - Team Panels (Sidebar) */}
-        <div style={{
+        <div className="team-sidebar" style={{
           height: '100%',
           overflowY: 'auto',
           paddingRight: 8

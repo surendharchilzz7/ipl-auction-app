@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 
-export default function Timer({ endsAt, duration = 20 }) {
+export default function Timer({ endsAt, duration = 20, style = {} }) {
   const [seconds, setSeconds] = useState(duration);
 
   useEffect(() => {
-    if (!endsAt) return;
+    if (!endsAt) {
+      setSeconds(duration); // Reset to full duration if waiting
+      return;
+    }
 
     const updateTimer = () => {
       const remaining = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
@@ -14,7 +17,7 @@ export default function Timer({ endsAt, duration = 20 }) {
     updateTimer();
     const interval = setInterval(updateTimer, 100);
     return () => clearInterval(interval);
-  }, [endsAt]);
+  }, [endsAt, duration]);
 
   const isUrgent = seconds <= 5;
   const progress = (seconds / duration) * 100;
@@ -23,14 +26,15 @@ export default function Timer({ endsAt, duration = 20 }) {
     <div style={{
       background: 'rgba(30, 41, 59, 0.95)',
       borderRadius: 12,
-      padding: '12px 16px',
+      padding: '8px 16px', // Slightly reduced padding for compactness default
       textAlign: 'center',
       marginBottom: 0,
       border: '1px solid rgba(255, 255, 255, 0.1)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-      gap: 16
+      gap: 12, // Reduced gap
+      ...style // Allow overrides
     }}>
       <div style={{ textAlign: 'left' }}>
         <div style={{ color: '#9ca3af', fontSize: 10, textTransform: 'uppercase', marginBottom: 2 }}>

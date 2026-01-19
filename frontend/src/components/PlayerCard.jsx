@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getPlayerPhotoUrl, DEFAULT_PLAYER_IMAGE } from '../data/playerPhotos';
 import { socket } from "../socket";
+import Timer from './Timer';
 
 const ROLE_INFO = {
   BAT: { label: 'Batsman', emoji: '🏏', color: '#60a5fa' },
@@ -29,7 +30,7 @@ const TEAM_LOGOS = {
 
 export default function PlayerCard({
   player, currentBid, teams, onSkip, canSkip,
-  myTeam, roomId, lastBidTeamId // Added props
+  myTeam, roomId, lastBidTeamId, bidEndsAt // Added props
 }) {
   const [imageError, setImageError] = useState(false);
 
@@ -72,7 +73,6 @@ export default function PlayerCard({
       position: 'relative',
       overflow: 'hidden',
       boxShadow: 'var(--glass-shadow)',
-      height: '100%',
       display: 'flex',
       flexDirection: 'column'
     }}>
@@ -181,10 +181,10 @@ export default function PlayerCard({
                 background: 'rgba(220, 38, 38, 0.8)', // Red
                 color: '#fff',
                 border: '1px solid rgba(255,255,255,0.2)',
-                padding: '8px 20px',
+                padding: '6px 16px', // Compact
                 borderRadius: 20,
                 cursor: 'pointer',
-                fontSize: 13,
+                fontSize: 12,
                 fontWeight: 'bold',
                 display: 'flex',
                 alignItems: 'center',
@@ -200,6 +200,23 @@ export default function PlayerCard({
             </button>
           </div>
         )}
+
+
+
+        {/* Timer (Always Visible) */}
+        <div className="player-card-timer">
+          <Timer
+            endsAt={bidEndsAt} // Can be null, Timer handles it
+            duration={20}
+            style={{
+              padding: '4px 10px',
+              minWidth: 100,
+              fontSize: 14,
+              boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+              background: 'rgba(15, 23, 42, 0.95)'
+            }}
+          />
+        </div>
 
         {/* Bottom: Bid Controls & Status */}
         <div style={{
@@ -266,13 +283,13 @@ export default function PlayerCard({
                   disabled={!hasEnoughBudget || overseasLimitReached}
                   style={{
                     width: '100%',
-                    padding: '20px',
+                    padding: '14px', // Reduced from 20px for better visibility
                     background: overseasLimitReached ? '#ef4444' : (!hasEnoughBudget ? '#4b5563' : 'linear-gradient(135deg, #3b82f6, #2563eb)'),
                     border: 'none',
                     borderRadius: 12,
                     color: '#fff',
                     fontWeight: 'bold',
-                    fontSize: 18,
+                    fontSize: 16, // Reduced from 18px
                     cursor: (hasEnoughBudget && !overseasLimitReached) ? 'pointer' : 'not-allowed',
                     display: 'flex',
                     alignItems: 'center',

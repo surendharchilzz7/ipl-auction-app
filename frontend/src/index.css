@@ -285,8 +285,46 @@ body {
   grid-template-columns: 1fr 340px;
   /* Fixed width for sidebar on desktop */
   gap: 24px;
-  height: calc(100vh - 140px);
+  /* height: calc(100vh - 140px); Removed fragile calc */
+  flex: 1;
+  height: 100%;
+  /* FORCE fill parent */
+  min-height: 0;
   align-items: start;
+  overflow: hidden;
+  /* Prevent body scroll from sidebar */
+}
+
+/* Scrollable Sidebar */
+/* Scrollable Sidebar with FORCED Custom Scrollbar */
+.team-sidebar {
+  height: 100%;
+  overflow-y: auto !important;
+  padding-right: 8px;
+  /* Firefox */
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(59, 130, 246, 0.5) rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Chrome/Edge/Safari */
+.team-sidebar::-webkit-scrollbar {
+  width: 6px !important;
+  display: block !important;
+}
+
+.team-sidebar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-radius: 4px;
+}
+
+.team-sidebar::-webkit-scrollbar-thumb {
+  background-color: rgba(59, 130, 246, 0.5) !important;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.team-sidebar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(59, 130, 246, 0.8) !important;
 }
 
 /* Mobile Banner */
@@ -324,5 +362,22 @@ body {
     padding-left: 12px !important;
     padding-right: 12px !important;
     /* Space for ads/chat */
+  }
+}
+
+/* Player Card Timer Responsive Positioning */
+.player-card-timer {
+  position: absolute;
+  top: 24px;
+  right: 130px;
+  z-index: 10;
+}
+
+@media (max-width: 768px) {
+  .player-card-timer {
+    top: 50px;
+    /* Centered below name */
+    right: 50%;
+    transform: translateX(50%) scale(0.9);
   }
 }
