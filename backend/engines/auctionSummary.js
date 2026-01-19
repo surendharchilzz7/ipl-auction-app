@@ -37,7 +37,9 @@ function calculateTeamScore(team) {
     // Value from players
     players.forEach(p => {
         const value = getPlayerValue(p);
-        score += value * (p.soldPrice || p.basePrice || 0.5);
+        // Score based on QUALITY, not PRICE. 
+        // 5-star player = 50 points. 1-star player = 10 points.
+        score += value * 10;
     });
 
     // Role balance bonus
@@ -166,81 +168,84 @@ function generateAuctionSummary(room) {
             overseas: p.overseas
         }));
 
-    // Best Picks (Best Value Logic)
-    const bestPicks = [...auctionBuys]
-        .map(p => {
-            // GOLDEN SOURCE LOOKUP
-            let trueBasePrice = 0.2;
+    // Best Value Picks - Players sold at or near base price
+    // Priority: 1) Auction buys at base price, 2) Autofill players (low price)
+    // Always show exactly 5 picks
 
+    const valuePicks = [];
+
+    // 1. Find players sold at their base price (real value picks from auction)
+    const basePriceBuys = auctionBuys
+        .filter(p => !p.autoFilled) // Only actual auction buys
+        .map(p => {
+            // Get true base price from golden source
+            let trueBasePrice = p.basePrice || 0.3;
             if (playersData && playersData.players) {
                 const original = playersData.players.find(op => op.id === p.id);
-                if (original) {
-                    trueBasePrice = original.basePrice || 0.2;
-                } else {
-                    trueBasePrice = p.basePrice || 0.2;
-                }
-            } else {
-                trueBasePrice = p.basePrice || 0.2;
+                if (original) trueBasePrice = original.basePrice || 0.3;
             }
 
-            // Auto-Correct logic (already present)
-            const effectivePrice = Math.max(p.soldPrice || 0, trueBasePrice);
-            const valueScore = getValueBuyScore(p, effectivePrice);
-            const val = getPlayerValue(p);
-
-            // Debug Log for Warner/Williamson
-            if (p.name.includes("Warner") || p.name.includes("Williamson")) {
-                console.log(`[BestValue Debug] ${p.name}: Base=${trueBasePrice}, Sold=${p.soldPrice}, Effective=${effectivePrice}, Rating=${val}, IsStarSteal=${(val >= 5) && (effectivePrice <= trueBasePrice * 1.05)}`);
-            }
+            const soldPrice = p.soldPrice || trueBasePrice;
+            // Value pick = sold price is exactly base price (or within 5%)
+            const isSoldAtBase = soldPrice <= trueBasePrice * 1.05;
 
             return {
                 ...p,
-                basePrice: trueBasePrice,
-                soldPrice: effectivePrice, // Use corrected price for logic
-                originalSoldPrice: p.soldPrice, // Keep original for display
-                valueScore: valueScore,
-                rating: val
+                trueBasePrice,
+                soldPrice,
+                isSoldAtBase,
+                // Higher value = lower price relative to quality
+                valueScore: isSoldAtBase ? (getPlayerValue(p) * 10) : getPlayerValue(p)
             };
         })
-        .filter(p => {
-            // 1. Sanity Check
-            if (p.soldPrice < p.basePrice) return false;
+        .filter(p => p.isSoldAtBase) // Only players sold at base price
+        .sort((a, b) => b.valueScore - a.valueScore); // Best quality first
 
-            // 2. Hybrid Price Filter
-            // General Rule: Exclude players >= 1 Cr
-            if (p.soldPrice >= 1) {
-                // EXCEPTION: Allow "Elite Stars" ONLY (Rating 5 / Base 2 Cr) bought at Base Price
-                // User considers 1.5 Cr players (Powell) "not worth showing" vs 0.2 Cr players
-                const isStarAtBase = (p.rating >= 5) && (p.soldPrice <= p.basePrice * 1.05); // Changed to >= 5
+    // Add base price buys to value picks
+    basePriceBuys.forEach(p => {
+        if (valuePicks.length < 5) {
+            valuePicks.push({
+                name: p.name,
+                role: p.role,
+                team: p.teamName,
+                price: p.soldPrice,
+                basePrice: p.trueBasePrice,
+                overseas: p.overseas,
+                isAutoFill: false
+            });
+        }
+    });
 
-                if (!isStarAtBase) {
-                    return false; // Filter out if expensive AND not an "Elite Star at Base"
+    // 2. If less than 5 value picks, add autofill players (sorted by base price)
+    if (valuePicks.length < 5) {
+        const autoFillPlayers = allPlayers
+            .filter(p => p.autoFilled)
+            .map(p => {
+                let trueBasePrice = p.basePrice || 0.3;
+                if (playersData && playersData.players) {
+                    const original = playersData.players.find(op => op.id === p.id);
+                    if (original) trueBasePrice = original.basePrice || 0.3;
                 }
+                return { ...p, trueBasePrice };
+            })
+            .sort((a, b) => a.trueBasePrice - b.trueBasePrice); // Cheapest first
+
+        autoFillPlayers.forEach(p => {
+            if (valuePicks.length < 5) {
+                valuePicks.push({
+                    name: p.name,
+                    role: p.role,
+                    team: p.teamName,
+                    price: p.trueBasePrice,
+                    basePrice: p.trueBasePrice,
+                    overseas: p.overseas,
+                    isAutoFill: true
+                });
             }
+        });
+    }
 
-            return true;
-        })
-        .sort((a, b) => {
-            // Priority 1: Elite Star Steals (Rating 5 AND Sold near Base) get Top Priority
-            const isStarStealA = (a.rating >= 5) && (a.soldPrice <= a.basePrice * 1.05); // Changed to >= 5
-            const isStarStealB = (b.rating >= 5) && (b.soldPrice <= b.basePrice * 1.05); // Changed to >= 5
-
-            if (isStarStealA && !isStarStealB) return -1; // A is Star Steal -> Top
-            if (!isStarStealA && isStarStealB) return 1;  // B is Star Steal -> Top
-
-            // Priority 2: ROI (Best Value Score) - This handles the 0.2 Cr players
-            return b.valueScore - a.valueScore;
-        })
-        .slice(0, 5)
-        .map(p => ({
-            name: p.name,
-            role: p.role,
-            team: p.teamName,
-            price: p.soldPrice, // FORCE EFFECTIVE PRICE: Shows 2.0 Cr (corrected) instead of 0.2 Cr (buggy)
-            basePrice: p.basePrice,
-            valueScore: Math.round(p.valueScore * 10) / 10,
-            overseas: p.overseas
-        }));
+    const bestPicks = valuePicks;
 
     // Team Predictions
     const teamPredictions = rankedTeams.map((team, idx) => ({

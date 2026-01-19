@@ -167,12 +167,28 @@ function autoFillTeams(room) {
 
   // Fill each team to minimum
   for (const team of sortedTeams) {
+    // CRITICAL: Skip if team already has MAX_SQUAD players
+    if ((team.players?.length || 0) >= MAX_SQUAD) {
+      console.log(`[AutoFill] ${team.name} already at MAX_SQUAD (${team.players.length}), skipping.`);
+      continue;
+    }
+
     while ((team.players?.length || 0) < MIN_SQUAD && pool.length > 0) {
+      // Double-check MAX_SQUAD limit
+      if ((team.players?.length || 0) >= MAX_SQUAD) break;
+
       // Find most needed role
       const neededRole = getMostNeededRole(team);
 
       // Calculate affordability for this slot
       const remainingBudget = team.budget || 0;
+
+      // STRICT BUDGET CHECK: If budget is 0 or negative, stop filling
+      if (remainingBudget <= 0) {
+        console.log(`[AutoFill] ${team.name} has no budget (${remainingBudget} Cr), stopping fill.`);
+        break;
+      }
+
       const slotsToFill = Math.max(1, MIN_SQUAD - (team.players ? team.players.length : 0));
       const reservedForOthers = Math.max(0, (slotsToFill - 1)) * 0.2;
       const maxAffordableForThisSlot = Math.max(0.2, remainingBudget - reservedForOthers);
@@ -223,6 +239,13 @@ function autoFillTeams(room) {
 
       const finalizedPrice = Number(soldPrice.toFixed(2));
 
+      // STRICT CHECK: Don't buy if we can't afford it
+      if (finalizedPrice > team.budget) {
+        console.log(`[AutoFill] ${team.name} can't afford ${player.name} (${finalizedPrice} > ${team.budget}), skipping.`);
+        pool.unshift(player); // Put back in pool
+        break;
+      }
+
       // Add to team
       team.players.push({
         ...player,
@@ -255,25 +278,32 @@ function autoFillTeams(room) {
   }
 
   // Continue filling to distribute remaining players evenly (Round Robin)
+  // THIS PHASE IS OPTIONAL - only fill if team has budget AND has fewer than MAX_SQUAD
   while (pool.length > 0) {
     let assignedAny = false;
     for (const team of sortedTeams) {
-      if ((team.players?.length || 0) >= MAX_SQUAD) continue;
+      // STRICT MAX_SQUAD CHECK - critical to prevent exceeding 25 players
+      const currentSquad = team.players?.length || 0;
+      if (currentSquad >= MAX_SQUAD) {
+        // This team is full, skip it entirely
+        continue;
+      }
       if (pool.length === 0) break;
 
       const canTakeOverseas = getOverseasCount(team) < MAX_OVERSEAS;
       const remainingBudget = team.budget || 0;
 
       // STRICT BUDGET CHECK for optional extra players
-      if (remainingBudget < 0.2) {
-        console.log(`[AutoFill] ${team.name} stopped filling (not enough budget: ${remainingBudget} Cr)`);
+      // Must have enough budget to afford at least the base price
+      if (remainingBudget <= 0) {
+        console.log(`[AutoFill] ${team.name} has no budget (${remainingBudget} Cr), skipping.`);
         continue;
       }
 
-      // Try to find affordable player
+      // Try to find affordable player - STRICT: basePrice must be <= remaining budget
       let playerIdx = pool.findIndex(p =>
         (!p.overseas || canTakeOverseas) &&
-        ((p.basePrice || 0.2) <= remainingBudget)
+        ((p.basePrice || 0.3) <= remainingBudget)
       );
 
       // If no affordable player, this team can't take any more optional players
@@ -282,6 +312,20 @@ function autoFillTeams(room) {
       const player = pool.splice(playerIdx, 1)[0];
       const soldPrice = calculateAutoFillPrice(player, team, 0); // Pass 0 for optional slots
       const finalizedPrice = Number(soldPrice.toFixed(2));
+
+      // FINAL SAFETY CHECK: Don't make budget negative
+      if (finalizedPrice > team.budget) {
+        console.log(`[AutoFill] ${team.name} would go negative buying ${player.name}, skipping.`);
+        pool.unshift(player); // Put back in pool
+        continue;
+      }
+
+      // FINAL SQUAD SIZE CHECK before adding
+      if ((team.players?.length || 0) >= MAX_SQUAD) {
+        console.log(`[AutoFill] ${team.name} reached MAX_SQUAD, stopping.`);
+        pool.unshift(player); // Put back in pool
+        continue;
+      }
 
       team.players.push({
         ...player,

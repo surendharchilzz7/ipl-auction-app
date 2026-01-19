@@ -10,6 +10,7 @@ import Auction from "./pages/Auction";
 export default function App() {
   const [room, setRoom] = useState(null);
   const [connected, setConnected] = useState(socket.connected);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     // Check for room code in URL on mount
@@ -70,15 +71,21 @@ export default function App() {
       setRoom(updatedRoom);
     });
 
-    // Handle invalid room (e.g. server restart cleared memory)
+    // Handle errors from server
     socket.on("error", (err) => {
       console.error("Socket Error:", err);
-      // Fix: err is an object { message: "..." }
       const msg = err?.message || err;
-      if (msg === "Room not found") {
+
+      // Show error to user
+      setError(msg);
+
+      // Auto-dismiss after 5 seconds
+      setTimeout(() => setError(null), 5000);
+
+      // Clear session if room doesn't exist
+      if (msg.includes("Room") || msg.includes("not found") || msg.includes("not exist")) {
         sessionStorage.removeItem("auctionRoomId");
         localStorage.removeItem("auctionRoomId");
-        // Clear URL
         window.history.replaceState({}, '', window.location.origin);
         setRoom(null);
       }
@@ -128,8 +135,50 @@ export default function App() {
 
   return (
     <>
+      {/* Error Toast */}
+      {error && (
+        <div style={{
+          position: 'fixed',
+          top: 20,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+          color: '#fff',
+          padding: '12px 24px',
+          borderRadius: 12,
+          fontSize: 14,
+          fontWeight: 500,
+          boxShadow: '0 4px 20px rgba(239, 68, 68, 0.4)',
+          zIndex: 10000,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          animation: 'slideDown 0.3s ease-out'
+        }}>
+          <span style={{ fontSize: 18 }}>⚠️</span>
+          {error}
+          <button
+            onClick={() => setError(null)}
+            style={{
+              background: 'rgba(255,255,255,0.2)',
+              border: 'none',
+              color: '#fff',
+              borderRadius: 4,
+              padding: '4px 8px',
+              cursor: 'pointer',
+              marginLeft: 8
+            }}
+          >✕</button>
+        </div>
+      )}
       {content}
       <div style={footerStyle}>By Surendhar</div>
+      <style>{`
+        @keyframes slideDown {
+          from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+          to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+      `}</style>
     </>
   );
 }

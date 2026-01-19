@@ -55,7 +55,7 @@ module.exports = server => {
       try {
         const room = joinRoom(roomId, username, socket.id);
         if (!room) {
-          socket.emit("error", { message: "Room not found" });
+          socket.emit("error", { message: "Unable to join room. Room may not exist or username is already in use." });
           return;
         }
         socket.join(roomId);

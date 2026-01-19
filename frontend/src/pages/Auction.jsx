@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
 import { socket } from "../socket";
@@ -10,6 +10,7 @@ import PlayerImage from "../components/PlayerImage";
 import { getPlayerPhotoUrl, DEFAULT_PLAYER_IMAGE } from "../data/playerPhotos";
 import VoiceChat from "../components/VoiceChat";
 import AdBanner from "../components/AdBanner";
+import auctionVoice from "../utils/auctionVoice";
 
 // Modal styles
 const modalOverlay = {
@@ -71,6 +72,12 @@ export default function Auction({ room }) {
   const [showEndConfirm, setShowEndConfirm] = useState(false);
   const [showEndAuctionConfirm, setShowEndAuctionConfirm] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+  const [voiceEnabled, setVoiceEnabled] = useState(true);
+
+  // Track previous values for voice announcements
+  const prevSetRef = useRef(null);
+  const prevPlayerRef = useRef(null);
+  const prevSaleRef = useRef(null); // Track specific sale events to prevent duplicates/misses
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 1024);
@@ -99,6 +106,68 @@ export default function Auction({ room }) {
       return () => clearInterval(interval);
     }
   }, [room?.rtmEndsAt]);
+
+  // Voice announcements for auction events
+  useEffect(() => {
+    if (!voiceEnabled) return;
+
+    const currentSet = room?.currentSet;
+    const currentPlayer = room?.currentPlayer;
+    const auctionState = room?.auctionState;
+
+    // Announce set change
+    const setChanged = currentSet && currentSet !== prevSetRef.current;
+    if (setChanged) {
+      auctionVoice.announceSet(currentSet);
+      prevSetRef.current = currentSet;
+    }
+
+    // Announce new player
+    if (currentPlayer && currentPlayer.id !== prevPlayerRef.current?.id) {
+      // If set changed, queue player announcement (priority=false). 
+      // Otherwise interrupt (priority=true).
+      const priority = !setChanged;
+      auctionVoice.announcePlayer(currentPlayer, priority);
+
+      prevPlayerRef.current = currentPlayer;
+    }
+
+    // Announce sold/unsold when bidding ends
+
+    // SPY LOG - unconditional
+    // console.log(`[Voice Spy] State: ${auctionState}, LFPlayer: ${!!room?.lastFinalizedPlayer}, Current: ${room?.currentPlayer?.name}`);
+
+    // LOGIC: Check lastFinalizedPlayer for "Sold" or "Unsold" status
+    // Note: Backend might send PLAYER_ACTIVE state during skip, so we rely on lastFinalizedPlayer being present
+
+    if (room?.lastFinalizedPlayer) {
+      if (room.lastFinalizedPlayer.sold) {
+        // SOLD CASE
+        const saleKey = `${room.currentPlayer.id}-SOLD-${room.lastFinalizedPlayer.soldTo}`;
+
+        if (saleKey !== prevSaleRef.current) {
+          console.log(`[Voice] Announcing SOLD: ${saleKey}`);
+          auctionVoice.announceSold(room.lastFinalizedPlayer.soldTo, room.lastFinalizedPlayer.soldPrice);
+          prevSaleRef.current = saleKey;
+        }
+      } else {
+        // UNSOLD CASE (lastFinalizedPlayer exists but sold=false)
+        const unsoldKey = `${room.lastFinalizedPlayer.id}-UNSOLD`;
+
+        if (unsoldKey !== prevSaleRef.current) {
+          console.log(`[Voice] Announcing UNSOLD: ${unsoldKey}`);
+          auctionVoice.announceUnsold();
+          prevSaleRef.current = unsoldKey;
+        }
+      }
+    }
+  }, [room?.currentSet, room?.currentPlayer, room?.auctionState, room?.lastFinalizedPlayer, voiceEnabled]);
+
+  // Toggle voice
+  const toggleVoice = () => {
+    const newState = auctionVoice.toggle();
+    setVoiceEnabled(newState);
+  };
 
   const handleAcceptRTM = () => {
     if (socket) socket.emit("rtm-match", { roomId: room.id });
@@ -623,7 +692,6 @@ export default function Auction({ room }) {
         </div>
 
         {/* Header - Premium Glassmorphism */}
-        {/* Header - Premium Glassmorphism */}
         <div style={{
           borderRadius: 'var(--radius-lg)',
           padding: '16px 24px',
@@ -632,17 +700,44 @@ export default function Auction({ room }) {
           backdropFilter: 'blur(20px)',
           border: '1px solid var(--glass-border)',
           display: 'flex',
-          flexDirection: 'column',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
           gap: 16
         }}>
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: 16,
-            marginBottom: 16
-          }}>
+          {/* Left Side: Room Code & Voice Toggle & Title */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
+            {/* Room Code & Toggle Group */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ background: 'rgba(255, 255, 255, 0.1)', padding: '8px 16px', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ color: '#94a3b8', fontSize: 13, textTransform: 'uppercase', letterSpacing: 1 }}>Room Code</span>
+                <span style={{ color: '#fff', fontSize: 20, fontWeight: 700, letterSpacing: 1, fontFamily: 'monospace' }}>{room.id.toUpperCase()}</span>
+              </div>
+
+              {/* Voice Toggle Button */}
+              <button
+                onClick={toggleVoice}
+                title={voiceEnabled ? "Mute Voice" : "Enable Voice"}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  borderRadius: '50%',
+                  width: 40,
+                  height: 40,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 20,
+                  cursor: 'pointer',
+                  color: voiceEnabled ? '#4ade80' : '#f87171',
+                  transition: 'all 0.2s'
+                }}
+              >
+                {voiceEnabled ? '🔊' : '🔇'}
+              </button>
+            </div>
+
+            {/* Title */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <span style={{ fontSize: 32 }}>🏏</span>
               <div>
@@ -652,7 +747,10 @@ export default function Auction({ room }) {
                 </p>
               </div>
             </div>
+          </div>
 
+          {/* Right Side: Set Info & Progress */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
             {/* Current Set Badge */}
             {room.currentSet && (
               <div style={{
@@ -667,62 +765,64 @@ export default function Auction({ room }) {
               </div>
             )}
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ color: '#9ca3af', fontSize: 12 }}>PROGRESS</div>
-                <div style={{ color: '#fff', fontWeight: 'bold' }}>
-                  {room.currentIndex + 1} / {room.totalPlayers}
-                </div>
-              </div>
-              <div style={{
-                width: 120,
-                height: 8,
-                background: '#374151',
-                borderRadius: 4,
-                overflow: 'hidden'
-              }}>
-                <div style={{
-                  width: `${progress}%`,
-                  height: '100%',
-                  background: 'linear-gradient(90deg, #3b82f6, #06b6d4)',
-                  transition: 'width 0.5s'
-                }} />
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ color: '#9ca3af', fontSize: 12 }}>PROGRESS</div>
+              <div style={{ color: '#fff', fontWeight: 'bold' }}>
+                {room.currentIndex + 1} / {room.totalPlayers}
               </div>
             </div>
-          </div>
 
-          {/* Navigation Buttons - Improved Wrapping for Mobile */}
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center', width: window.innerWidth < 768 ? '100%' : 'auto' }}>
-              {navButton('Search', '🔍', () => setActiveModal('search'), activeModal === 'search')}
-              {navButton('Sets', '📋', () => { setSelectedSet(room.currentSet); setActiveModal('sets'); }, activeModal === 'sets')}
-              {navButton('Retentions', '🔒', () => setActiveModal('retentions'), activeModal === 'retentions')}
-              {navButton('Team Buys', '🛒', () => setActiveModal('teamBuys'), activeModal === 'teamBuys')}
+            {/* Progress Bar Mini */}
+            <div style={{
+              width: 120,
+              height: 8,
+              background: '#374151',
+              borderRadius: 4,
+              overflow: 'hidden'
+            }}>
+              <div style={{
+                width: `${progress}%`,
+                height: '100%',
+                background: 'linear-gradient(90deg, #3b82f6, #06b6d4)',
+                transition: 'width 0.5s'
+              }} />
             </div>
-            {isHost && (
-              <button
-                onClick={() => setShowEndAuctionConfirm(true)}
-                style={{
-                  background: 'linear-gradient(135deg, #ef4444, #dc2626)',
-                  border: 'none',
-                  color: '#fff',
-                  padding: '8px 16px',
-                  borderRadius: 8,
-                  cursor: 'pointer',
-                  fontWeight: '600',
-                  fontSize: 14,
-                  boxShadow: '0 2px 4px rgba(220, 38, 38, 0.3)',
-                  transition: 'all 0.2s'
-                }}
-              >
-                End Auction
-              </button>
-            )}
           </div>
         </div>
 
-        {/* Search Modal */}
-        {activeModal === 'search' && (
+        {/* Navigation Buttons */}
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center', width: window.innerWidth < 768 ? '100%' : 'auto' }}>
+            {navButton('Search', '🔍', () => setActiveModal('search'), activeModal === 'search')}
+            {navButton('Sets', '📋', () => { setSelectedSet(room.currentSet); setActiveModal('sets'); }, activeModal === 'sets')}
+            {navButton('Retentions', '🔒', () => setActiveModal('retentions'), activeModal === 'retentions')}
+            {navButton('Team Buys', '🛒', () => setActiveModal('teamBuys'), activeModal === 'teamBuys')}
+          </div>
+          {isHost && (
+            <button
+              onClick={() => setShowEndAuctionConfirm(true)}
+              style={{
+                background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                border: 'none',
+                color: '#fff',
+                padding: '8px 16px',
+                borderRadius: 8,
+                cursor: 'pointer',
+                fontWeight: '600',
+                fontSize: 14,
+                boxShadow: '0 2px 4px rgba(220, 38, 38, 0.3)',
+                transition: 'all 0.2s'
+              }}
+            >
+              End Auction
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Search Modal */}
+      {
+        activeModal === 'search' && (
           <div style={modalOverlay} onClick={() => setActiveModal(null)}>
             <div style={{ ...modalContent, maxWidth: 600 }} onClick={e => e.stopPropagation()}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
@@ -822,10 +922,12 @@ export default function Auction({ room }) {
               </div>
             </div>
           </div>
-        )}
+        )
+      }
 
-        {/* Retention Modal - Placeholder for now */}
-        {activeModal === 'retentions' && (
+      {/* Retention Modal - Placeholder for now */}
+      {
+        activeModal === 'retentions' && (
           <div style={modalOverlay} onClick={() => setActiveModal(null)}>
             <div style={{ ...modalContent, maxWidth: 600 }} onClick={e => e.stopPropagation()}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
@@ -837,10 +939,12 @@ export default function Auction({ room }) {
               </p>
             </div>
           </div>
-        )}
+        )
+      }
 
-        {/* Custom End Auction Confirmation Modal */}
-        {showEndAuctionConfirm && (
+      {/* Custom End Auction Confirmation Modal */}
+      {
+        showEndAuctionConfirm && (
           <div style={{
             position: 'fixed',
             top: 0,
@@ -904,10 +1008,12 @@ export default function Auction({ room }) {
               </div>
             </div>
           </div>
-        )}
+        )
+      }
 
-        {/* Sold/Unsold Result Overlay - Shows for 5 seconds after player finalized */}
-        {room.lastFinalizedPlayer && (
+      {/* Sold/Unsold Result Overlay - Shows for 5 seconds after player finalized */}
+      {
+        room.lastFinalizedPlayer && (
           <div style={{
             position: 'fixed',
             top: 0,
@@ -1100,437 +1206,438 @@ export default function Auction({ room }) {
               </div>
             </div>
           </div>
-        )}
+        )
+      }
 
-        {/* RTM Decision Overlay - Shows when RTM is pending */}
-        {
-          room.rtmPending && (
+      {/* RTM Decision Overlay - Shows when RTM is pending */}
+      {
+        room.rtmPending && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.92)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 2000,
+            overflow: 'auto',
+            padding: '20px 0'
+          }}>
             <div style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: 'rgba(0, 0, 0, 0.92)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              zIndex: 2000,
-              overflow: 'auto',
-              padding: '20px 0'
+              textAlign: 'center',
+              padding: 24,
+              maxWidth: 500,
+              width: '95%'
             }}>
+              {/* RTM Badge */}
               <div style={{
-                textAlign: 'center',
-                padding: 24,
-                maxWidth: 500,
-                width: '95%'
+                background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                padding: '8px 20px',
+                borderRadius: 10,
+                display: 'inline-block',
+                marginBottom: 12
               }}>
-                {/* RTM Badge */}
-                <div style={{
-                  background: 'linear-gradient(135deg, #f59e0b, #d97706)',
-                  padding: '8px 20px',
-                  borderRadius: 10,
-                  display: 'inline-block',
-                  marginBottom: 12
-                }}>
-                  <span style={{ fontSize: 20, fontWeight: 'bold', color: '#fff' }}>⚡ RIGHT TO MATCH</span>
-                </div>
+                <span style={{ fontSize: 20, fontWeight: 'bold', color: '#fff' }}>⚡ RIGHT TO MATCH</span>
+              </div>
 
-                {/* Player Info Row - Compact */}
+              {/* Player Info Row - Compact */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 16,
+                marginBottom: 12,
+                background: 'rgba(251, 191, 36, 0.1)',
+                padding: 12,
+                borderRadius: 12,
+                border: '1px solid rgba(251, 191, 36, 0.3)'
+              }}>
+                {/* Player Photo - Smaller */}
                 <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 16,
-                  marginBottom: 12,
-                  background: 'rgba(251, 191, 36, 0.1)',
-                  padding: 12,
-                  borderRadius: 12,
-                  border: '1px solid rgba(251, 191, 36, 0.3)'
-                }}>
-                  {/* Player Photo - Smaller */}
-                  <div style={{
-                    width: 70,
-                    height: 70,
-                    borderRadius: '50%',
-                    background: 'linear-gradient(135deg, rgba(251, 191, 36, 0.3), rgba(245, 158, 11, 0.3))',
-                    border: '3px solid #f59e0b',
-                    overflow: 'hidden',
-                    flexShrink: 0
-                  }}>
-                    <img
-                      src={getPlayerPhotoUrl(room.rtmPending.playerName) || DEFAULT_PLAYER_IMAGE}
-                      alt={room.rtmPending.playerName}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }}
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = DEFAULT_PLAYER_IMAGE;
-                      }}
-                    />
-                  </div>
-                  <div style={{ textAlign: 'left' }}>
-                    <div style={{ color: '#fff', fontSize: 22, fontWeight: 'bold' }}>{room.rtmPending.playerName}</div>
-                    <div style={{ color: '#9ca3af', fontSize: 13 }}>
-                      Bid by <strong style={{ color: '#60a5fa' }}>{room.rtmPending.buyingTeamName}</strong>: <strong style={{ color: '#34d399' }}>₹{room.rtmPending.currentBid} Cr</strong>
-                    </div>
-                    {room.rtmPending.buyingTeamCounter && (
-                      <div style={{ color: '#f59e0b', fontSize: 13, marginTop: 2 }}>
-                        Counter: ₹{room.rtmPending.buyingTeamCounter} Cr
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* RTM Team Info - Compact */}
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 12,
-                  marginBottom: 16
+                  width: 70,
+                  height: 70,
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, rgba(251, 191, 36, 0.3), rgba(245, 158, 11, 0.3))',
+                  border: '3px solid #f59e0b',
+                  overflow: 'hidden',
+                  flexShrink: 0
                 }}>
                   <img
-                    src={TEAM_LOGOS[room.rtmPending.rtmTeamName]}
-                    alt={room.rtmPending.rtmTeamName}
-                    style={{ width: 40, height: 40, borderRadius: 8, border: '2px solid #f59e0b' }}
-                    onError={(e) => e.target.style.display = 'none'}
+                    src={getPlayerPhotoUrl(room.rtmPending.playerName) || DEFAULT_PLAYER_IMAGE}
+                    alt={room.rtmPending.playerName}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }}
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = DEFAULT_PLAYER_IMAGE;
+                    }}
                   />
-                  <div style={{ textAlign: 'left' }}>
-                    <div style={{ color: '#f59e0b', fontSize: 12 }}>RTM FOR</div>
-                    <div style={{ color: '#fff', fontSize: 18, fontWeight: 'bold' }}>
-                      {room.rtmPending.rtmTeamName}
-                      <span style={{ color: '#9ca3af', fontSize: 12, marginLeft: 8 }}>
-                        ({room.rtmCardsRemaining?.[room.rtmPending.rtmTeamName] || 0} cards left)
-                      </span>
+                </div>
+                <div style={{ textAlign: 'left' }}>
+                  <div style={{ color: '#fff', fontSize: 22, fontWeight: 'bold' }}>{room.rtmPending.playerName}</div>
+                  <div style={{ color: '#9ca3af', fontSize: 13 }}>
+                    Bid by <strong style={{ color: '#60a5fa' }}>{room.rtmPending.buyingTeamName}</strong>: <strong style={{ color: '#34d399' }}>₹{room.rtmPending.currentBid} Cr</strong>
+                  </div>
+                  {room.rtmPending.buyingTeamCounter && (
+                    <div style={{ color: '#f59e0b', fontSize: 13, marginTop: 2 }}>
+                      Counter: ₹{room.rtmPending.buyingTeamCounter} Cr
                     </div>
+                  )}
+                </div>
+              </div>
+
+              {/* RTM Team Info - Compact */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 12,
+                marginBottom: 16
+              }}>
+                <img
+                  src={TEAM_LOGOS[room.rtmPending.rtmTeamName]}
+                  alt={room.rtmPending.rtmTeamName}
+                  style={{ width: 40, height: 40, borderRadius: 8, border: '2px solid #f59e0b' }}
+                  onError={(e) => e.target.style.display = 'none'}
+                />
+                <div style={{ textAlign: 'left' }}>
+                  <div style={{ color: '#f59e0b', fontSize: 12 }}>RTM FOR</div>
+                  <div style={{ color: '#fff', fontSize: 18, fontWeight: 'bold' }}>
+                    {room.rtmPending.rtmTeamName}
+                    <span style={{ color: '#9ca3af', fontSize: 12, marginLeft: 8 }}>
+                      ({room.rtmCardsRemaining?.[room.rtmPending.rtmTeamName] || 0} cards left)
+                    </span>
                   </div>
                 </div>
+              </div>
 
-                {/* RTM Timer - Countdown */}
-                {room.rtmEndsAt && (
+              {/* RTM Timer - Countdown */}
+              {room.rtmEndsAt && (
+                <div style={{
+                  background: 'rgba(0,0,0,0.4)',
+                  borderRadius: 20,
+                  padding: '4px 12px',
+                  color: rtmTimeLeft < 10 ? '#ef4444' : '#fff',
+                  fontWeight: 'bold',
+                  fontSize: 14,
+                  marginBottom: 16,
+                  border: `1px solid ${rtmTimeLeft < 10 ? '#ef4444' : 'rgba(255,255,255,0.2)'}`,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6
+                }}>
+                  <span>⏱️</span>
+                  <span>{rtmTimeLeft}s</span>
+                </div>
+              )}
+
+              {/* RTM Decision Buttons - Context depends on state and team */}
+              {room.auctionState === 'RTM_PENDING' && myTeam?.name === room.rtmPending.rtmTeamName ? (
+                // Initial RTM decision - RTM team can match or decline
+                <div>
+                  <div style={{ color: '#f59e0b', fontSize: 18, marginBottom: 20, fontWeight: 500 }}>
+                    Your team has Right to Match! Will you match the bid?
+                  </div>
                   <div style={{
-                    background: 'rgba(0,0,0,0.4)',
-                    borderRadius: 20,
-                    padding: '4px 12px',
-                    color: rtmTimeLeft < 10 ? '#ef4444' : '#fff',
-                    fontWeight: 'bold',
-                    fontSize: 14,
-                    marginBottom: 16,
-                    border: `1px solid ${rtmTimeLeft < 10 ? '#ef4444' : 'rgba(255,255,255,0.2)'}`,
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 6
+                    display: 'flex',
+                    gap: 16,
+                    justifyContent: 'center',
+                    flexDirection: window.innerWidth < 768 ? 'column' : 'row' // Stack on mobile
                   }}>
-                    <span>⏱️</span>
-                    <span>{rtmTimeLeft}s</span>
+                    <button
+                      onClick={() => {
+                        console.log('[RTM] Matching bid');
+                        socket.emit('rtm-match', { roomId: room.id });
+                      }}
+                      style={{
+                        padding: '16px 40px',
+                        borderRadius: 12,
+                        background: 'linear-gradient(135deg, #22c55e, #16a34a)',
+                        border: 'none',
+                        color: '#fff',
+                        cursor: 'pointer',
+                        fontSize: 18,
+                        fontWeight: 'bold',
+                        boxShadow: '0 4px 20px rgba(34, 197, 94, 0.4)',
+                        width: window.innerWidth < 768 ? '100%' : 'auto'
+                      }}
+                    >
+                      ✓ MATCH (₹{room.rtmPending.currentBid} Cr)
+                    </button>
+                    <button
+                      onClick={() => {
+                        console.log('[RTM] Declining RTM');
+                        socket.emit('rtm-decline', { roomId: room.id });
+                      }}
+                      style={{
+                        padding: '16px 40px',
+                        borderRadius: 12,
+                        background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                        border: 'none',
+                        color: '#fff',
+                        cursor: 'pointer',
+                        fontSize: 18,
+                        fontWeight: 'bold',
+                        boxShadow: '0 4px 20px rgba(239, 68, 68, 0.4)',
+                        width: window.innerWidth < 768 ? '100%' : 'auto'
+                      }}
+                    >
+                      ✗ DECLINE
+                    </button>
                   </div>
-                )}
+                </div>
+              ) : room.auctionState === 'RTM_COUNTER_PENDING' && myTeam?.name === room.rtmPending.buyingTeamName ? (
+                // Buying team can counter or accept
+                (() => {
+                  const minCounter = room.rtmPending.currentBid + 0.25;
+                  const maxCounter = myTeam?.budget || 120;
+                  const effectiveCounter = counterAmount > 0 ? counterAmount : minCounter;
 
-                {/* RTM Decision Buttons - Context depends on state and team */}
-                {room.auctionState === 'RTM_PENDING' && myTeam?.name === room.rtmPending.rtmTeamName ? (
-                  // Initial RTM decision - RTM team can match or decline
-                  <div>
-                    <div style={{ color: '#f59e0b', fontSize: 18, marginBottom: 20, fontWeight: 500 }}>
-                      Your team has Right to Match! Will you match the bid?
-                    </div>
-                    <div style={{
-                      display: 'flex',
-                      gap: 16,
-                      justifyContent: 'center',
-                      flexDirection: window.innerWidth < 768 ? 'column' : 'row' // Stack on mobile
-                    }}>
-                      <button
-                        onClick={() => {
-                          console.log('[RTM] Matching bid');
-                          socket.emit('rtm-match', { roomId: room.id });
-                        }}
-                        style={{
-                          padding: '16px 40px',
-                          borderRadius: 12,
-                          background: 'linear-gradient(135deg, #22c55e, #16a34a)',
-                          border: 'none',
-                          color: '#fff',
-                          cursor: 'pointer',
-                          fontSize: 18,
-                          fontWeight: 'bold',
-                          boxShadow: '0 4px 20px rgba(34, 197, 94, 0.4)',
-                          width: window.innerWidth < 768 ? '100%' : 'auto'
-                        }}
-                      >
-                        ✓ MATCH (₹{room.rtmPending.currentBid} Cr)
-                      </button>
-                      <button
-                        onClick={() => {
-                          console.log('[RTM] Declining RTM');
-                          socket.emit('rtm-decline', { roomId: room.id });
-                        }}
-                        style={{
-                          padding: '16px 40px',
-                          borderRadius: 12,
-                          background: 'linear-gradient(135deg, #ef4444, #dc2626)',
-                          border: 'none',
-                          color: '#fff',
-                          cursor: 'pointer',
-                          fontSize: 18,
-                          fontWeight: 'bold',
-                          boxShadow: '0 4px 20px rgba(239, 68, 68, 0.4)',
-                          width: window.innerWidth < 768 ? '100%' : 'auto'
-                        }}
-                      >
-                        ✗ DECLINE
-                      </button>
-                    </div>
-                  </div>
-                ) : room.auctionState === 'RTM_COUNTER_PENDING' && myTeam?.name === room.rtmPending.buyingTeamName ? (
-                  // Buying team can counter or accept
-                  (() => {
-                    const minCounter = room.rtmPending.currentBid + 0.25;
-                    const maxCounter = myTeam?.budget || 120;
-                    const effectiveCounter = counterAmount > 0 ? counterAmount : minCounter;
+                  return (
+                    <div>
+                      <div style={{ color: '#60a5fa', fontSize: 18, marginBottom: 16, fontWeight: 500 }}>
+                        {room.rtmPending.rtmTeamName} matched your bid! Make a counter-offer:
+                      </div>
 
-                    return (
-                      <div>
-                        <div style={{ color: '#60a5fa', fontSize: 18, marginBottom: 16, fontWeight: 500 }}>
-                          {room.rtmPending.rtmTeamName} matched your bid! Make a counter-offer:
-                        </div>
-
-                        {/* Counter Amount Input */}
-                        <div style={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          gap: 12,
-                          marginBottom: 20,
-                          background: 'rgba(59, 130, 246, 0.1)',
-                          padding: 20,
-                          borderRadius: 12,
-                          border: '1px solid rgba(59, 130, 246, 0.3)'
-                        }}>
-                          {/* Amount Display and Input */}
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                            <span style={{ color: '#9ca3af', fontSize: 14 }}>Counter:</span>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                              <span style={{ color: '#60a5fa', fontSize: 24 }}>₹</span>
-                              <input
-                                type="number"
-                                value={counterAmount > 0 ? counterAmount : minCounter}
-                                onChange={(e) => {
-                                  let val = parseFloat(e.target.value) || minCounter;
-                                  val = Math.max(minCounter, Math.min(val, maxCounter));
-                                  setCounterAmount(val);
-                                }}
-                                step="0.25"
-                                min={minCounter}
-                                max={maxCounter}
-                                style={{
-                                  width: 100,
-                                  padding: '8px 12px',
-                                  fontSize: 24,
-                                  fontWeight: 'bold',
-                                  background: 'rgba(30, 41, 59, 0.8)',
-                                  border: '2px solid #3b82f6',
-                                  borderRadius: 8,
-                                  color: '#fff',
-                                  textAlign: 'center'
-                                }}
-                              />
-                              <span style={{ color: '#60a5fa', fontSize: 24 }}>Cr</span>
-                            </div>
-                          </div>
-
-                          {/* Slider */}
-                          <div style={{ width: '100%', maxWidth: 400 }}>
+                      {/* Counter Amount Input */}
+                      <div style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: 12,
+                        marginBottom: 20,
+                        background: 'rgba(59, 130, 246, 0.1)',
+                        padding: 20,
+                        borderRadius: 12,
+                        border: '1px solid rgba(59, 130, 246, 0.3)'
+                      }}>
+                        {/* Amount Display and Input */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                          <span style={{ color: '#9ca3af', fontSize: 14 }}>Counter:</span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <span style={{ color: '#60a5fa', fontSize: 24 }}>₹</span>
                             <input
-                              type="range"
+                              type="number"
+                              value={counterAmount > 0 ? counterAmount : minCounter}
+                              onChange={(e) => {
+                                let val = parseFloat(e.target.value) || minCounter;
+                                val = Math.max(minCounter, Math.min(val, maxCounter));
+                                setCounterAmount(val);
+                              }}
+                              step="0.25"
                               min={minCounter}
                               max={maxCounter}
-                              step="0.25"
-                              value={counterAmount > 0 ? counterAmount : minCounter}
-                              onChange={(e) => setCounterAmount(parseFloat(e.target.value))}
                               style={{
-                                width: '100%',
-                                height: 8,
-                                appearance: 'none',
-                                background: `linear-gradient(to right, #3b82f6 ${((effectiveCounter - minCounter) / (maxCounter - minCounter)) * 100}%, #374151 0%)`,
-                                borderRadius: 4,
-                                cursor: 'pointer'
+                                width: 100,
+                                padding: '8px 12px',
+                                fontSize: 24,
+                                fontWeight: 'bold',
+                                background: 'rgba(30, 41, 59, 0.8)',
+                                border: '2px solid #3b82f6',
+                                borderRadius: 8,
+                                color: '#fff',
+                                textAlign: 'center'
                               }}
                             />
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
-                              <span style={{ color: '#9ca3af', fontSize: 11 }}>Min: ₹{minCounter.toFixed(2)} Cr</span>
-                              <span style={{ color: '#9ca3af', fontSize: 11 }}>Your Budget: ₹{maxCounter.toFixed(2)} Cr</span>
-                            </div>
+                            <span style={{ color: '#60a5fa', fontSize: 24 }}>Cr</span>
                           </div>
                         </div>
 
-                        {/* Action Buttons */}
-                        <div style={{ display: 'flex', gap: 16, justifyContent: 'center' }}>
-                          <button
-                            onClick={() => {
-                              const amount = counterAmount > 0 ? counterAmount : minCounter;
-                              console.log('[RTM] Counter offer:', amount);
-                              socket.emit('rtm-counter', { roomId: room.id, counterAmount: amount });
-                              setCounterAmount(0);
-                            }}
+                        {/* Slider */}
+                        <div style={{ width: '100%', maxWidth: 400 }}>
+                          <input
+                            type="range"
+                            min={minCounter}
+                            max={maxCounter}
+                            step="0.25"
+                            value={counterAmount > 0 ? counterAmount : minCounter}
+                            onChange={(e) => setCounterAmount(parseFloat(e.target.value))}
                             style={{
-                              padding: '14px 32px',
-                              borderRadius: 12,
-                              background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
-                              border: 'none',
-                              color: '#fff',
-                              cursor: 'pointer',
-                              fontSize: 16,
-                              fontWeight: 'bold',
-                              boxShadow: '0 4px 20px rgba(59, 130, 246, 0.4)'
+                              width: '100%',
+                              height: 8,
+                              appearance: 'none',
+                              background: `linear-gradient(to right, #3b82f6 ${((effectiveCounter - minCounter) / (maxCounter - minCounter)) * 100}%, #374151 0%)`,
+                              borderRadius: 4,
+                              cursor: 'pointer'
                             }}
-                          >
-                            📤 Counter at ₹{(counterAmount > 0 ? counterAmount : minCounter).toFixed(2)} Cr
-                          </button>
-                          <button
-                            onClick={() => {
-                              console.log('[RTM] Skipping counter');
-                              socket.emit('rtm-skip-counter', { roomId: room.id });
-                              setCounterAmount(0);
-                            }}
-                            style={{
-                              padding: '14px 32px',
-                              borderRadius: 12,
-                              background: 'linear-gradient(135deg, #6b7280, #4b5563)',
-                              border: 'none',
-                              color: '#fff',
-                              cursor: 'pointer',
-                              fontSize: 16,
-                              fontWeight: 'bold'
-                            }}
-                          >
-                            Skip Counter
-                          </button>
+                          />
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
+                            <span style={{ color: '#9ca3af', fontSize: 11 }}>Min: ₹{minCounter.toFixed(2)} Cr</span>
+                            <span style={{ color: '#9ca3af', fontSize: 11 }}>Your Budget: ₹{maxCounter.toFixed(2)} Cr</span>
+                          </div>
                         </div>
                       </div>
-                    )
-                  })()
-                ) : room.auctionState === 'RTM_FINAL_PENDING' && myTeam?.name === room.rtmPending.rtmTeamName ? (
-                  // RTM Team Final Decision: Match Counter or Decline
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ color: '#f59e0b', fontSize: 18, marginBottom: 20, fontWeight: 500 }}>
-                      <span style={{ color: '#60a5fa', fontWeight: 'bold' }}>{room.rtmPending.buyingTeamName}</span> countered with <span style={{ color: '#fff', fontWeight: 'bold' }}>₹{room.rtmPending.buyingTeamCounter} Cr</span>!
-                      <br />Will you match this price?
-                    </div>
-                    <div style={{ display: 'flex', gap: 16, justifyContent: 'center' }}>
-                      <button
-                        onClick={() => {
-                          console.log('[RTM] Matching counter');
-                          socket.emit('rtm-final', { roomId: room.id, decision: 'match' });
-                        }}
-                        style={{
-                          padding: '16px 40px',
-                          borderRadius: 12,
-                          background: 'linear-gradient(135deg, #22c55e, #16a34a)',
-                          border: 'none',
-                          color: '#fff',
-                          cursor: 'pointer',
-                          fontSize: 18,
-                          fontWeight: 'bold',
-                          boxShadow: '0 4px 20px rgba(34, 197, 94, 0.4)'
-                        }}
-                      >
-                        ✓ MATCH (₹{room.rtmPending.buyingTeamCounter} Cr)
-                      </button>
-                      <button
-                        onClick={() => {
-                          console.log('[RTM] Declining counter');
-                          socket.emit('rtm-final', { roomId: room.id, decision: 'decline' });
-                        }}
-                        style={{
-                          padding: '16px 40px',
-                          borderRadius: 12,
-                          background: 'linear-gradient(135deg, #ef4444, #dc2626)',
-                          border: 'none',
-                          color: '#fff',
-                          cursor: 'pointer',
-                          fontSize: 18,
-                          fontWeight: 'bold',
-                          boxShadow: '0 4px 20px rgba(239, 68, 68, 0.4)'
-                        }}
-                      >
-                        ✗ DECLINE
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  // Waiting State (for non-active teams or other states)
-                  <div style={{
-                    background: 'rgba(255,255,255,0.05)',
-                    padding: 16,
-                    borderRadius: 12,
-                    textAlign: 'center',
-                    color: '#9ca3af'
-                  }}>
-                    {room.auctionState === 'RTM_FINAL_PENDING' ? (
-                      <span>Waiting for <strong style={{ color: '#f59e0b' }}>{room.rtmPending.rtmTeamName}</strong> to decide on counter...</span>
-                    ) : room.auctionState === 'RTM_COUNTER_PENDING' ? (
-                      <span>Waiting for <strong style={{ color: '#60a5fa' }}>{room.rtmPending.buyingTeamName}</strong> to counter...</span>
-                    ) : (
-                      <span>Waiting for <strong style={{ color: '#f59e0b' }}>{room.rtmPending.rtmTeamName}</strong>...</span>
-                    )}
-                  </div>
-                )}
 
-                {/* Duplicate RTM Status Logic Removed */}
-                {/* Duplicate RTM Status Logic Fully Removed */}
-              </div>
+                      {/* Action Buttons */}
+                      <div style={{ display: 'flex', gap: 16, justifyContent: 'center' }}>
+                        <button
+                          onClick={() => {
+                            const amount = counterAmount > 0 ? counterAmount : minCounter;
+                            console.log('[RTM] Counter offer:', amount);
+                            socket.emit('rtm-counter', { roomId: room.id, counterAmount: amount });
+                            setCounterAmount(0);
+                          }}
+                          style={{
+                            padding: '14px 32px',
+                            borderRadius: 12,
+                            background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+                            border: 'none',
+                            color: '#fff',
+                            cursor: 'pointer',
+                            fontSize: 16,
+                            fontWeight: 'bold',
+                            boxShadow: '0 4px 20px rgba(59, 130, 246, 0.4)'
+                          }}
+                        >
+                          📤 Counter at ₹{(counterAmount > 0 ? counterAmount : minCounter).toFixed(2)} Cr
+                        </button>
+                        <button
+                          onClick={() => {
+                            console.log('[RTM] Skipping counter');
+                            socket.emit('rtm-skip-counter', { roomId: room.id });
+                            setCounterAmount(0);
+                          }}
+                          style={{
+                            padding: '14px 32px',
+                            borderRadius: 12,
+                            background: 'linear-gradient(135deg, #6b7280, #4b5563)',
+                            border: 'none',
+                            color: '#fff',
+                            cursor: 'pointer',
+                            fontSize: 16,
+                            fontWeight: 'bold'
+                          }}
+                        >
+                          Skip Counter
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })()
+              ) : room.auctionState === 'RTM_FINAL_PENDING' && myTeam?.name === room.rtmPending.rtmTeamName ? (
+                // RTM Team Final Decision: Match Counter or Decline
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ color: '#f59e0b', fontSize: 18, marginBottom: 20, fontWeight: 500 }}>
+                    <span style={{ color: '#60a5fa', fontWeight: 'bold' }}>{room.rtmPending.buyingTeamName}</span> countered with <span style={{ color: '#fff', fontWeight: 'bold' }}>₹{room.rtmPending.buyingTeamCounter} Cr</span>!
+                    <br />Will you match this price?
+                  </div>
+                  <div style={{ display: 'flex', gap: 16, justifyContent: 'center' }}>
+                    <button
+                      onClick={() => {
+                        console.log('[RTM] Matching counter');
+                        socket.emit('rtm-final', { roomId: room.id, decision: 'match' });
+                      }}
+                      style={{
+                        padding: '16px 40px',
+                        borderRadius: 12,
+                        background: 'linear-gradient(135deg, #22c55e, #16a34a)',
+                        border: 'none',
+                        color: '#fff',
+                        cursor: 'pointer',
+                        fontSize: 18,
+                        fontWeight: 'bold',
+                        boxShadow: '0 4px 20px rgba(34, 197, 94, 0.4)'
+                      }}
+                    >
+                      ✓ MATCH (₹{room.rtmPending.buyingTeamCounter} Cr)
+                    </button>
+                    <button
+                      onClick={() => {
+                        console.log('[RTM] Declining counter');
+                        socket.emit('rtm-final', { roomId: room.id, decision: 'decline' });
+                      }}
+                      style={{
+                        padding: '16px 40px',
+                        borderRadius: 12,
+                        background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                        border: 'none',
+                        color: '#fff',
+                        cursor: 'pointer',
+                        fontSize: 18,
+                        fontWeight: 'bold',
+                        boxShadow: '0 4px 20px rgba(239, 68, 68, 0.4)'
+                      }}
+                    >
+                      ✗ DECLINE
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                // Waiting State (for non-active teams or other states)
+                <div style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  padding: 16,
+                  borderRadius: 12,
+                  textAlign: 'center',
+                  color: '#9ca3af'
+                }}>
+                  {room.auctionState === 'RTM_FINAL_PENDING' ? (
+                    <span>Waiting for <strong style={{ color: '#f59e0b' }}>{room.rtmPending.rtmTeamName}</strong> to decide on counter...</span>
+                  ) : room.auctionState === 'RTM_COUNTER_PENDING' ? (
+                    <span>Waiting for <strong style={{ color: '#60a5fa' }}>{room.rtmPending.buyingTeamName}</strong> to counter...</span>
+                  ) : (
+                    <span>Waiting for <strong style={{ color: '#f59e0b' }}>{room.rtmPending.rtmTeamName}</strong>...</span>
+                  )}
+                </div>
+              )}
+
+              {/* Duplicate RTM Status Logic Removed */}
+              {/* Duplicate RTM Status Logic Fully Removed */}
             </div>
-          )
-        }
-        {/* Main Content Grid - Split Screen Command Center */}
-        <div className="auction-layout">
+          </div>
+        )
+      }
+      {/* Main Content Grid - Split Screen Command Center */}
+      <div className="auction-layout">
 
-          {/* Left Side - The STAGE (Visual Focus + Controls) */}
+        {/* Left Side - The STAGE (Visual Focus + Controls) */}
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%',
+          gap: isMobile ? 4 : 16 // Tighter gap on mobile
+        }}>
           <div style={{
+            flex: 1,
+            position: 'relative',
             display: 'flex',
-            flexDirection: 'column',
-            height: '100%',
-            gap: isMobile ? 4 : 16 // Tighter gap on mobile
+            flexDirection: 'column'
           }}>
-            <div style={{
-              flex: 1,
-              position: 'relative',
-              display: 'flex',
-              flexDirection: 'column'
-            }}>
-              {/* Player Card takes main space - Will resize in component */}
-              <div style={{ flex: 1, minHeight: 0 }}>
-                <PlayerCard
-                  player={room.currentPlayer}
-                  currentBid={room.currentBid}
-                  teams={room.teams}
-                  onSkip={() => socket.emit("skip-player", { roomId: room.id })}
-                  canSkip={isHost && !room.currentBid}
-                  myTeam={myTeam}
-                  roomId={room.id}
-                  lastBidTeamId={room.lastBidTeamId}
-                />
-              </div>
+            {/* Player Card takes main space - Will resize in component */}
+            <div style={{ flex: 1, minHeight: 0 }}>
+              <PlayerCard
+                player={room.currentPlayer}
+                currentBid={room.currentBid}
+                teams={room.teams}
+                onSkip={() => socket.emit("skip-player", { roomId: room.id })}
+                canSkip={isHost && !room.currentBid}
+                myTeam={myTeam}
+                roomId={room.id}
+                lastBidTeamId={room.lastBidTeamId}
+              />
+            </div>
 
-              {/* Timer below card */}
-              <div style={{ marginTop: 16 }}>
-                <Timer endsAt={room.bidEndsAt} duration={20} />
-              </div>
+            {/* Timer below card */}
+            <div style={{ marginTop: 16 }}>
+              <Timer endsAt={room.bidEndsAt} duration={20} />
             </div>
           </div>
-
-          {/* Right Side - Team Panels (Sidebar) */}
-          <div style={{
-            height: '100%',
-            overflowY: 'auto',
-            paddingRight: 8
-          }}>
-            <TeamPanel teams={room.teams} />
-          </div>
-          {/* Right Side - The CONSOLE (Data Only) */}
-
         </div>
-      </div >
+
+        {/* Right Side - Team Panels (Sidebar) */}
+        <div style={{
+          height: '100%',
+          overflowY: 'auto',
+          paddingRight: 8
+        }}>
+          <TeamPanel teams={room.teams} hostSocketId={room.hostSocketId} />
+        </div>
+        {/* Right Side - The CONSOLE (Data Only) */}
+
+      </div>
+
 
       {/* Sets Modal - Enhanced with Player List */}
       {

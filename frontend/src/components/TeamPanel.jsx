@@ -58,7 +58,7 @@ function TeamLogo({ name, size = 32 }) {
   );
 }
 
-export default function TeamPanel({ teams, compact = false }) {
+export default function TeamPanel({ teams, compact = false, hostSocketId = null }) {
   if (!Array.isArray(teams) || teams.length === 0) return null;
 
   const sortedTeams = [...teams].sort((a, b) => b.budget - a.budget);
@@ -141,6 +141,41 @@ export default function TeamPanel({ teams, compact = false }) {
             );
           })}
         </div>
+
+        {/* Ad Slot in Sidebar - Fixed position, won't affect scroll */}
+        <div style={{
+          marginTop: 16,
+          padding: 10,
+          background: 'rgba(30, 41, 59, 0.8)',
+          borderRadius: 8,
+          border: '1px solid rgba(255, 255, 255, 0.05)',
+          overflow: 'hidden'
+        }}>
+          <div style={{
+            color: '#4b5563',
+            fontSize: 9,
+            marginBottom: 6,
+            textTransform: 'uppercase',
+            letterSpacing: 0.5,
+            textAlign: 'center'
+          }}>
+            Advertisement
+          </div>
+          <div style={{
+            width: '100%',
+            height: 100,
+            background: '#1f2937',
+            borderRadius: 6,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#374151',
+            fontSize: 10,
+            overflow: 'hidden'
+          }}>
+            AD SPACE
+          </div>
+        </div>
       </div>
     );
   }
@@ -174,6 +209,11 @@ export default function TeamPanel({ teams, compact = false }) {
                   <div style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>{team.name}</div>
                   <div style={{ color: '#9ca3af', fontSize: 12 }}>
                     {team.isAI ? '🤖 AI' : `👤 ${team.owner}`}
+                    {!team.isAI && team.socketId && hostSocketId && team.socketId === hostSocketId && (
+                      <span style={{ color: '#f59e0b', fontWeight: 'bold', marginLeft: 8, fontSize: 10, background: 'rgba(245, 158, 11, 0.1)', padding: '2px 6px', borderRadius: 4 }}>
+                        (HOST)
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -191,9 +231,16 @@ export default function TeamPanel({ teams, compact = false }) {
               </div>
             </div>
 
-            {/* Sidebar Ad (Square) */}
-            <div className="desktop-only-ad" style={{ marginTop: 12 }}>
-              <AdBanner slotId="SIDEBAR_SLOT" style={{ width: '100%', height: 250, borderRadius: 8 }} />
+            {/* Ad Slot - Fixed size, won't grow or affect layout */}
+            <div style={{
+              marginBottom: 12,
+              height: 90,
+              minHeight: 90,
+              maxHeight: 90,
+              overflow: 'hidden',
+              borderRadius: 8
+            }}>
+              <AdBanner slotId="TEAM_SLOT" style={{ width: '100%', height: 90 }} />
             </div>
 
             {/* Budget Utilization Bar */}
@@ -325,8 +372,12 @@ export default function TeamPanel({ teams, compact = false }) {
               </div>
             </div>
           </div>
-        ))}
-      </div>
-    </div>
+        ))
+        }
+
+        {/* Ad Slot Card - Fits in the grid like a team card */}
+        {/* Removed as per instruction: "Remove ad from end of full teams grid" */}
+      </div >
+    </div >
   );
 }

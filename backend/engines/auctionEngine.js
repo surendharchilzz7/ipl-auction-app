@@ -441,13 +441,33 @@ function skipPlayer(room, io) {
 
   console.log(`[Skip] Skipping player: ${room.currentPlayer?.name}`);
 
-  // Destroy timer, finalize as skipped, and advance
+  // Destroy timer and finalize as skipped
   destroyTimer(room);
-  finalizePlayer(room);
-  advancePlayer(room, io);
 
-  // Emit update
+  // Save the player info before finalizing for display
+  const finalizedPlayer = { ...room.currentPlayer };
+
+  finalizePlayer(room);
+
+  // Set lastFinalizedPlayer so frontend sees the "Unsold" result/sound
+  room.lastFinalizedPlayer = {
+    ...finalizedPlayer,
+    sold: false,
+    soldTo: null,
+    soldPrice: null
+  };
+
+  // Emit update showing the result (SKIPPED state)
   io.to(room.id).emit("room-update", serializeRoom(room));
+
+  console.log(`[Skip] Showing result for 5 seconds...`);
+
+  // Wait 5 seconds before advancing to next player
+  setTimeout(() => {
+    room.lastFinalizedPlayer = null; // Clear after display
+    advancePlayer(room, io);
+    io.to(room.id).emit("room-update", serializeRoom(room));
+  }, 5000);
 
   return true;
 }

@@ -3,6 +3,7 @@ const season2025 = require("./data/seasons/2025.json");
 const rules = require("./data/rules/auctionRules.json");
 
 const rooms = {};
+const roomCleanupTimers = {}; // Track cleanup timers for empty rooms
 const IPL_TEAMS = Object.keys(season2025.teams || season2025);
 
 // Fallback if teams object is empty
@@ -96,23 +97,36 @@ function joinRoom(roomId, username, socketId) {
     return null;
   }
 
+  // Cancel any pending cleanup for this room since someone is joining
+  if (roomCleanupTimers[roomId]) {
+    clearTimeout(roomCleanupTimers[roomId]);
+    delete roomCleanupTimers[roomId];
+    console.log(`[Join] Room ${roomId} cleanup cancelled - User joined`);
+  }
+
   let human = room.humans.find(h => h.username === username);
-  if (!human) {
-    human = { username, socketId, team: null };
-    room.humans.push(human);
-    console.log(`[Join] New player ${username} joined room ${roomId}`);
-  } else {
+
+  if (human) {
+    // User with same username exists - check if they're still online
+    if (human.socketId && human.socketId !== socketId) {
+      // SECURITY: Original user is still online - reject duplicate username
+      console.log(`[Join] REJECTED: Username "${username}" is already in use by socket ${human.socketId}`);
+      return null; // Return null to indicate join failure
+    }
+
+    // Original user is OFFLINE (socketId is null) - allow reconnection
+    console.log(`[Join] Player ${username} reconnecting to room ${roomId}`);
+
     // Check if this user was the original host (first human in the list)
     const wasHost = room.humans[0]?.username === username;
 
     // Update socket ID for reconnecting user
     human.socketId = socketId;
-    console.log(`[Join] Player ${username} reconnected to room ${roomId}`);
 
     // Update host socket ID if this was the host OR if the room is currently leaderless
     if (wasHost || !room.hostSocketId) {
       room.hostSocketId = socketId;
-      console.log(`[Join] Host assigned to ${username} (socket: ${socketId}). Reason: ${wasHost ? 'Original Host' : 'Room was Leaderless'}`);
+      console.log(`[Join] Host assigned to ${username} (socket: ${socketId}). Reason: ${wasHost ? 'Original Host Reconnected' : 'Room was Leaderless'}`);
     }
 
     // Also update team socketId if they had a team
@@ -120,8 +134,14 @@ function joinRoom(roomId, username, socketId) {
       const team = room.teams.find(t => t.name === human.team);
       if (team) {
         team.socketId = socketId;
+        console.log(`[Join] Team ${team.name} reactivated for reconnecting user`);
       }
     }
+  } else {
+    // New user - add them
+    human = { username, socketId, team: null };
+    room.humans.push(human);
+    console.log(`[Join] New player ${username} joined room ${roomId}`);
   }
 
   return room;
@@ -269,6 +289,32 @@ function handleDisconnect(socketId) {
       }
 
       break; // User can only be in one room at a time usually
+    }
+  }
+
+  // Check if room is empty (no active sockets)
+  if (affectedRoom && affectedRoom.room) {
+    const room = affectedRoom.room;
+    const activeUsers = room.humans.filter(h => h.socketId).length;
+
+    if (activeUsers === 0) {
+      console.log(`[Disconnect] Room ${room.id} is empty. Scheduling cleanup in 5 minutes...`);
+
+      // Clear existing timer if any (debounce)
+      if (roomCleanupTimers[room.id]) clearTimeout(roomCleanupTimers[room.id]);
+
+      roomCleanupTimers[room.id] = setTimeout(() => {
+        console.log(`[Cleanup] Deleting empty room ${room.id}`);
+
+        // Stop auction timer if running
+        if (room._timer) {
+          clearInterval(room._timer);
+        }
+
+        // Delete room
+        delete rooms[room.id];
+        delete roomCleanupTimers[room.id];
+      }, 5 * 60 * 1000); // 5 minutes grace period
     }
   }
 
