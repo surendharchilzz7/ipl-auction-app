@@ -1092,8 +1092,8 @@ export default function Auction({ room }) {
                 marginBottom: 24
               }}>
                 <div style={{
-                  width: 200,
-                  height: 200,
+                  width: 'clamp(150px, 40vw, 200px)',
+                  height: 'clamp(150px, 40vw, 200px)',
                   borderRadius: '50%',
                   background: 'linear-gradient(135deg, #1e293b, #0f172a)',
                   padding: 8,

@@ -151,8 +151,8 @@ export default function PlayerCard({
           minHeight: 0 // Allow shrink
         }}>
           <div style={{
-            width: 200, // Reduced from 220 for compatibility
-            height: 200,
+            width: 'clamp(140px, 25vw, 200px)', // Responsive size
+            height: 'clamp(140px, 25vw, 200px)',
             borderRadius: '50%',
             background: `linear-gradient(135deg, ${role.color}20, ${role.color}05)`,
             display: 'flex',
