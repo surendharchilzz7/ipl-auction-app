@@ -3,7 +3,11 @@
  * All events are wrapped in try-catch for error resilience
  */
 
-const serializeRoom = require("./utils/serializeRoom");
+// Helper to inject server time for sync
+const serializeRoomWithTime = (room) => ({
+  ...serializeRoom(room),
+  serverTime: Date.now()
+});
 const {
   rooms,
   createRoom,

@@ -206,7 +206,8 @@ export default function PlayerCard({
         {/* Timer (Always Visible) */}
         <div className="player-card-timer">
           <Timer
-            endsAt={bidEndsAt} // Can be null, Timer handles it
+            endsAt={bidEndsAt}
+            offset={props.timeOffset || 0} // Use offset
             duration={20}
             style={{
               padding: '4px 10px',

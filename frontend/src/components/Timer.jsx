@@ -1,17 +1,17 @@
 import { useEffect, useState } from "react";
 
-export default function Timer({ endsAt, duration = 20, style = {} }) {
+export default function Timer({ endsAt, duration = 20, style = {}, offset = 0 }) {
   const [seconds, setSeconds] = useState(duration);
 
   useEffect(() => {
     if (!endsAt) {
-      setSeconds(duration); // Reset to full duration if waiting
+      setSeconds(duration);
       return;
     }
 
     const updateTimer = () => {
       const endTime = new Date(endsAt).getTime();
-      const now = Date.now();
+      const now = Date.now() + offset; // Adjust current time by server offset
       const diff = endTime - now;
       const remaining = Math.max(0, Math.ceil(diff / 1000));
       setSeconds(isNaN(remaining) ? duration : remaining);
