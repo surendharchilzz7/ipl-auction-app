@@ -2,17 +2,22 @@ import React, { useEffect } from 'react';
 
 const AdBanner = ({ slotId, format = 'auto', style = {} }) => {
     useEffect(() => {
-        try {
-            if (window.adsbygoogle) {
-                (window.adsbygoogle = window.adsbygoogle || []).push({});
+        // Small delay to ensure layout (sidebar width) is calculated before requesting ad
+        const timer = setTimeout(() => {
+            try {
+                if (window.adsbygoogle) {
+                    (window.adsbygoogle = window.adsbygoogle || []).push({});
+                }
+            } catch (e) {
+                // Ignore known AdSense re-render "error"
+                if (e.message && e.message.includes("elements in the DOM")) {
+                    return;
+                }
+                console.error("AdSense Error:", e);
             }
-        } catch (e) {
-            // Ignore known AdSense re-render "error" which is actually harmless
-            if (e.message && e.message.includes("All 'ins' elements in the DOM with class=adsbygoogle already have ads")) {
-                return;
-            }
-            console.error("AdSense Error:", e);
-        }
+        }, 300); // 300ms delay to fix "availableWidth=0" error
+
+        return () => clearTimeout(timer);
     }, []);
 
     // Development Placeholder (Mock Ad)

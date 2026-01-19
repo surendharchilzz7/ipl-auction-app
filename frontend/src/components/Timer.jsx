@@ -10,8 +10,11 @@ export default function Timer({ endsAt, duration = 20, style = {} }) {
     }
 
     const updateTimer = () => {
-      const remaining = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
-      setSeconds(remaining);
+      const endTime = new Date(endsAt).getTime();
+      const now = Date.now();
+      const diff = endTime - now;
+      const remaining = Math.max(0, Math.ceil(diff / 1000));
+      setSeconds(isNaN(remaining) ? duration : remaining);
     };
 
     updateTimer();
