@@ -30,7 +30,7 @@ const TEAM_LOGOS = {
 
 export default function PlayerCard({
   player, currentBid, teams, onSkip, canSkip,
-  myTeam, roomId, lastBidTeamId, bidEndsAt // Added props
+  myTeam, roomId, lastBidTeamId, bidEndsAt, timeOffset // Added props
 }) {
   const [imageError, setImageError] = useState(false);
 
@@ -206,8 +206,8 @@ export default function PlayerCard({
         {/* Timer (Always Visible) */}
         <div className="player-card-timer">
           <Timer
-            endsAt={bidEndsAt}
-            offset={props.timeOffset || 0} // Use offset
+            endsAt={bidEndsAt} // Can be null, Timer handles it
+            offset={timeOffset || 0}
             duration={20}
             style={{
               padding: '4px 10px',

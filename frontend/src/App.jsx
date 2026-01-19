@@ -11,6 +11,7 @@ export default function App() {
   const [room, setRoom] = useState(null);
   const [connected, setConnected] = useState(socket.connected);
   const [error, setError] = useState(null);
+  const [timeOffset, setTimeOffset] = useState(0);
 
   useEffect(() => {
     // Check for room code in URL on mount
@@ -52,6 +53,15 @@ export default function App() {
 
     socket.on("room-update", updatedRoom => {
       console.log("ROOM UPDATE:", updatedRoom.state, "summary:", !!updatedRoom.summary);
+
+      // System Clock Sync: Calculate offset
+      if (updatedRoom.serverTime) {
+        const offset = updatedRoom.serverTime - Date.now();
+        // Only update if drift is significant (>1s) to prevent jitter
+        if (Math.abs(offset) > 1000) {
+          setTimeOffset(offset);
+        }
+      }
 
       // Save ID to persist session
       if (updatedRoom?.id) {
@@ -130,7 +140,7 @@ export default function App() {
   } else if (room.state === "RETENTION") {
     content = <Retention room={room} />;
   } else {
-    content = <Auction room={room} />;
+    content = <Auction room={room} timeOffset={timeOffset} />;
   }
 
   return (

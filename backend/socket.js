@@ -3,11 +3,10 @@
  * All events are wrapped in try-catch for error resilience
  */
 
-// Helper to inject server time for sync
-const serializeRoomWithTime = (room) => ({
-  ...serializeRoom(room),
-  serverTime: Date.now()
-});
+const serializeRoom = require("./utils/serializeRoom");
+
+// serializeRoom now includes serverTime internally, so we use it directly.
+const serializeRoomWithTime = serializeRoom;
 const {
   rooms,
   createRoom,
@@ -50,7 +49,10 @@ module.exports = server => {
         io.to(room.id).emit("room-update", serializeRoom(room));
       } catch (err) {
         console.error("[create-room] Error:", err);
-        socket.emit("error", { message: "Failed to create room" });
+        socket.emit("error", {
+          message: "Failed to create room: " + (err.message || "Unknown error"),
+          details: err.stack
+        });
       }
     });
 

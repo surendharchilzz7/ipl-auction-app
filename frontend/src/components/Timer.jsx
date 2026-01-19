@@ -5,13 +5,13 @@ export default function Timer({ endsAt, duration = 20, style = {}, offset = 0 })
 
   useEffect(() => {
     if (!endsAt) {
-      setSeconds(duration);
+      setSeconds(duration); // Reset to full duration if waiting
       return;
     }
 
     const updateTimer = () => {
       const endTime = new Date(endsAt).getTime();
-      const now = Date.now() + offset; // Adjust current time by server offset
+      const now = Date.now() + offset; // Adjust for server clock drift
       const diff = endTime - now;
       const remaining = Math.max(0, Math.ceil(diff / 1000));
       setSeconds(isNaN(remaining) ? duration : remaining);

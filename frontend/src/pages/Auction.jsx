@@ -62,7 +62,7 @@ const TEAM_LOGOS = {
 };
 
 
-export default function Auction({ room }) {
+export default function Auction({ room, timeOffset }) {
   const [isConnected, setIsConnected] = useState(socket.connected);
   const [activeModal, setActiveModal] = useState(null); // 'sets', 'retentions', 'buys'
   const [activeRoleTab, setActiveRoleTab] = useState('BAT');
@@ -77,8 +77,7 @@ export default function Auction({ room }) {
   // Track previous values for voice announcements
   const prevSetRef = useRef(null);
   const prevPlayerRef = useRef(null);
-  const prevSaleRef = useRef(null);
-  const [timeOffset, setTimeOffset] = useState(0); // Server-Client time difference // Track specific sale events to prevent duplicates/misses
+  const prevSaleRef = useRef(null); // Track specific sale events to prevent duplicates/misses
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 1024);
@@ -209,18 +208,6 @@ export default function Auction({ room }) {
 
       setIsStatsUnlocked(true);
       localStorage.setItem('isAuctionStatsUnlocked', 'true');
-      socket.on("room-update", (newRoom) => {
-        // Calculate clock offset if server time is provided
-        if (newRoom.serverTime) {
-          const offset = newRoom.serverTime - Date.now();
-          // Only update if difference is significant (>1s) to avoid jitter
-          if (Math.abs(offset) > 1000) {
-            setTimeOffset(offset);
-          }
-        }
-
-        console.log("ROOM UPDATE:", newRoom.state, "summary:", !!newRoom.summary);
-      });
     } catch (error) {
       console.error("Login Failed (Decode Error):", error);
     }
@@ -1627,27 +1614,28 @@ export default function Auction({ room }) {
           height: '100%',
           gap: isMobile ? 4 : 8 // Tighter gap on mobile and desktop
         }}>
-          {/* Player Card & Timer Area - Centered and Compact */}
           <div style={{
+            flex: 1,
+            position: 'relative',
             display: 'flex',
             flexDirection: 'column',
-            width: '100%',
-            justifyContent: 'center', // Center vertically
-            alignItems: 'center', // Center horizontally
-            flex: 1, // Allow filling space
-            minHeight: 0 // Prevent overflow
+            justifyContent: 'center' // Center content vertically
           }}>
-            <PlayerCard
-              player={room.currentPlayer}
-              currentBid={room.currentBid}
-              highestTeam={room.teams.find(t => t.id === room.currentBid?.teamId)}
-              onPlaceBid={() => handlePlaceBid(room.currentBid?.amount ? room.currentBid?.amount + 0.25 : room.currentPlayer?.basePrice)}
-              onSkip={handleSkip}
-              userTeam={userTeam}
-              isOwner={isHost || (room.currentBid && room.currentBid.teamId === userTeam?.id)}
-              bidEndsAt={room.bidEndsAt}
-              timeOffset={timeOffset} // Pass offset for accurate timer
-            />
+            {/* Player Card - Auto height */}
+            <div style={{ flex: 1, minHeight: 0 }}>
+              <PlayerCard
+                player={room.currentPlayer}
+                currentBid={room.currentBid}
+                teams={room.teams}
+                onSkip={() => socket.emit("skip-player", { roomId: room.id })}
+                canSkip={isHost && !room.currentBid}
+                myTeam={myTeam}
+                roomId={room.id}
+                lastBidTeamId={room.lastBidTeamId}
+                bidEndsAt={room.bidEndsAt}
+                timeOffset={timeOffset}
+              />
+            </div>
           </div>
         </div>
 
@@ -1661,8 +1649,7 @@ export default function Auction({ room }) {
         </div>
         {/* Right Side - The CONSOLE (Data Only) */}
 
-      </div >
-
+      </div>
 
 
       {/* Sets Modal - Enhanced with Player List */}
