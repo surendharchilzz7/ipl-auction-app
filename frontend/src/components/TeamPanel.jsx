@@ -240,7 +240,7 @@ export default function TeamPanel({ teams, compact = false, hostSocketId = null 
               overflow: 'hidden',
               borderRadius: 8
             }}>
-              <AdBanner slotId="TEAM_SLOT" style={{ width: '100%', height: 90 }} />
+              <AdBanner slotId="TEAM_SLOT" format="horizontal" style={{ width: '100%', height: 90 }} />
             </div>
 
             {/* Budget Utilization Bar */}

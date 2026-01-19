@@ -38,11 +38,11 @@ const AdBanner = ({ slotId, format = 'auto', style = {} }) => {
     return (
         <div style={{ overflow: 'hidden', ...style }}>
             <ins className="adsbygoogle"
-                style={{ display: 'block' }}
-                data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" // Placeholder Client ID
+                style={{ display: 'block', width: '100%', height: '100%' }}
+                data-ad-client={import.meta.env.VITE_GOOGLE_ADSENSE_ID || "ca-pub-XXXXXXXXXXXXXXXX"}
                 data-ad-slot={slotId}
                 data-ad-format={format}
-                data-full-width-responsive="true"></ins>
+                data-full-width-responsive="false"></ins>
         </div>
     );
 };
