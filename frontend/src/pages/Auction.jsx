@@ -169,6 +169,11 @@ export default function Auction({ room, timeOffset }) {
     setVoiceEnabled(newState);
   };
 
+  // Handle Skip Player (Host only)
+  const handleSkip = () => {
+    if (socket) socket.emit("skip-player", { roomId: room.id });
+  };
+
   const handleAcceptRTM = () => {
     if (socket) socket.emit("rtm-match", { roomId: room.id });
   };
