@@ -60,21 +60,29 @@ const TextChat = ({ roomId, username }) => {
         return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     };
 
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     return (
         <div style={{
             position: 'fixed',
-            bottom: 24,
-            left: 360, // Moved significantly right to safely clear wide "Weak Connection" voice status
+            bottom: isMobile ? 100 : 24, // Mobile: Stack above voice chat, Desktop: Align bottom
+            left: isMobile ? 20 : 360,   // Mobile: Align left, Desktop: Clear voice chat status
             zIndex: 3001
         }}>
             {/* Chat Panel */}
             {isOpen && (
                 <div style={{
                     position: 'absolute',
-                    bottom: 60,
+                    bottom: 60, // Opens above the button
                     left: 0,
-                    width: 320,
-                    height: 400,
+                    width: isMobile ? 'calc(100vw - 40px)' : 320, // Responsive width
+                    height: isMobile ? '50vh' : 400,              // Responsive height
                     background: 'rgba(15, 23, 42, 0.98)',
                     borderRadius: 16,
                     border: '1px solid rgba(255,255,255,0.1)',

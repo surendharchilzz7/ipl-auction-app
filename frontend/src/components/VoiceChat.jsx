@@ -211,12 +211,11 @@ const VoiceChat = ({ roomId }) => {
         return peer;
     }
 
-    // Get status display text
     const getStatusText = () => {
         switch (connectionState) {
             case 'connecting': return '🔄 Connecting...';
             case 'connected': return `✅ ${peers.length} active`;
-            case 'weak': return '⚠️ Weak Connection';
+            case 'weak': return '⏳ Waiting for others...';
             case 'error': return '❌ Error';
             default: return '';
         }
@@ -226,7 +225,7 @@ const VoiceChat = ({ roomId }) => {
         switch (connectionState) {
             case 'connecting': return '#60a5fa';
             case 'connected': return '#34d399';
-            case 'weak': return '#f59e0b';
+            case 'weak': return '#9ca3af'; // Neutral gray instead of warning orange
             case 'error': return '#ef4444';
             default: return '#9ca3af';
         }
