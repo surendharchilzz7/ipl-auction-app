@@ -40,16 +40,22 @@ function createRoom(username, socketId, config = {}) {
   // Use default teams if IPL_TEAMS is empty
   const teamsToUse = IPL_TEAMS.length > 0 ? IPL_TEAMS : DEFAULT_TEAMS;
 
+  // Validate and set budget (120-200 in steps of 10)
+  let budget = parseInt(config.budget) || rules.purse || 120;
+  budget = Math.max(120, Math.min(200, budget)); // Clamp to 120-200
+  budget = Math.round(budget / 10) * 10; // Round to nearest 10
+
   const room = {
     id,
     hostSocketId: socketId,
     season: season2025.season,
     seasonSquads: season2025.teams || {},
-    rules,
+    rules: { ...rules, purse: budget }, // Override purse with selected budget
 
     config: {
       allowAI: !!config.allowAI,
-      retentionEnabled: !!config.retentionEnabled
+      retentionEnabled: !!config.retentionEnabled,
+      budget: budget // Store budget in config for reference
     },
 
     state: "TEAM_SELECTION",
@@ -61,7 +67,7 @@ function createRoom(username, socketId, config = {}) {
       name: t,
       owner: null,
       socketId: null,
-      budget: rules.purse || 120,
+      budget: budget, // Use configured budget
       players: [],
       retained: [],
       isAI: false

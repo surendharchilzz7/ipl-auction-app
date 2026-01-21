@@ -30,7 +30,10 @@ function getPlayerValue(player) {
 /**
  * Calculate team score for ranking
  */
-function calculateTeamScore(team) {
+/**
+ * Calculate team score for ranking
+ */
+function calculateTeamScore(team, totalBudget = 120) {
     const players = team.players || [];
     let score = 0;
 
@@ -59,7 +62,9 @@ function calculateTeamScore(team) {
     if (players.length >= 22) score += 5;
 
     // Budget remaining penalty (too much left = bad picks)
-    if (team.budget > 20) score -= 3;
+    // Threshold scales with budget: >16% of budget is "too much" (approx 20Cr for 120 budget)
+    const penaltyThreshold = totalBudget * 0.166;
+    if (team.budget > penaltyThreshold) score -= 3;
 
     return Math.round(score * 10) / 10;
 }
@@ -79,7 +84,10 @@ function getValueBuyScore(player, effectivePrice) {
 /**
  * Get team strengths and weaknesses
  */
-function getTeamAnalysis(team) {
+/**
+ * Get team strengths and weaknesses
+ */
+function getTeamAnalysis(team, totalBudget = 120) {
     const players = team.players || [];
     const roles = { BAT: 0, BOWL: 0, AR: 0, WK: 0 };
     let totalValue = 0;
@@ -107,8 +115,13 @@ function getTeamAnalysis(team) {
     else if (roles.WK < 1) weaknesses.push('WK shortage');
 
     if (totalValue / players.length > 3) strengths.push('High quality squad');
-    if (team.budget < 5) strengths.push('Budget well spent');
-    if (team.budget > 30) weaknesses.push('Underspent budget');
+
+    // Budget analysis
+    // < 4% of total budget is "well spent" (approx 5Cr for 120)
+    if (team.budget < (totalBudget * 0.04)) strengths.push('Budget well spent');
+
+    // > 25% of total budget is "underspent" (approx 30Cr for 120)
+    if (team.budget > (totalBudget * 0.25)) weaknesses.push('Underspent budget');
 
     return { strengths, weaknesses };
 }
@@ -130,11 +143,14 @@ function generateAuctionSummary(room) {
         });
     });
 
+    // Get room budget
+    const totalBudget = room.config?.budget || room.rules?.purse || 120;
+
     // Best Team
     const rankedTeams = teams.map(team => ({
         ...team,
-        score: calculateTeamScore(team),
-        analysis: getTeamAnalysis(team)
+        score: calculateTeamScore(team, totalBudget),
+        analysis: getTeamAnalysis(team, totalBudget)
     })).sort((a, b) => b.score - a.score);
 
     const bestTeam = rankedTeams[0];

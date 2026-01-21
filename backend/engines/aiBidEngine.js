@@ -8,13 +8,31 @@
  * - Active bidding on needed roles
  */
 
-// Maximum price AI will pay for different player types
-const MAX_BID_CAPS = {
+// Base maximum prices AI will pay for different player types (at 120 Cr budget)
+const BASE_MAX_BID_CAPS = {
   star: 18,      // High base price players (≥2 Cr)
   premium: 10,   // Medium base price (1-2 Cr)
   regular: 5,    // Low base price (0.5-1 Cr)
   budget: 2      // Minimum base price (<0.5 Cr)
 };
+
+// For backward compatibility
+const MAX_BID_CAPS = BASE_MAX_BID_CAPS;
+
+/**
+ * Get scaled bid caps based on room budget
+ * Higher budget = AI willing to pay more for players
+ * @param {number} roomBudget - Room's total budget (120-200)
+ */
+function getScaledMaxBidCaps(roomBudget) {
+  const budgetRatio = (roomBudget || 120) / 120; // Base is 120 Cr
+  return {
+    star: Math.round(BASE_MAX_BID_CAPS.star * budgetRatio),      // 18 → 30 (at 200 Cr)
+    premium: Math.round(BASE_MAX_BID_CAPS.premium * budgetRatio), // 10 → 17 (at 200 Cr)
+    regular: Math.round(BASE_MAX_BID_CAPS.regular * budgetRatio), // 5 → 8 (at 200 Cr)
+    budget: Math.round(BASE_MAX_BID_CAPS.budget * budgetRatio)    // 2 → 3 (at 200 Cr)
+  };
+}
 
 // Minimum budget AI must keep - scaled by how many players still needed
 const BASE_RESERVE = 15; // ₹15 Cr base reserve
@@ -51,38 +69,127 @@ function getRoleNeed(team) {
 }
 
 /**
- * Get dynamic reserve based on team needs
+ * Get dynamic reserve based on team needs and room budget
+ * @param {Object} team - Team object
+ * @param {number} roomBudget - Optional room budget (default 120)
  */
-function getDynamicReserve(team) {
+function getDynamicReserve(team, roomBudget = 120) {
   const playerCount = team.players?.length || 0;
   const playersNeeded = 18 - playerCount;
 
-  // Need ~₹1 Cr per player for basic squad
-  const neededReserve = Math.max(0, playersNeeded) * 1;
+  // Scale reserve per player based on room budget
+  // Higher budget = need to reserve more per player for balanced spending
+  const reservePerPlayer = (roomBudget / 120) * 1.5; // 1.5 Cr per player at 120, 2.1 at 170, 2.5 at 200
+  const neededReserve = Math.max(0, playersNeeded) * reservePerPlayer;
 
-  return Math.max(BASE_RESERVE, neededReserve);
+  // Base reserve also scales with budget (12.5% of total budget)
+  const scaledBaseReserve = roomBudget * 0.125;
+
+  return Math.max(scaledBaseReserve, neededReserve);
 }
 
 /**
  * Get maximum bid AI will place for a player
+ * @param {Object} player - Player object
+ * @param {Object} team - Team object
+ * @param {number} roomBudget - Optional room budget for scaling (default 120)
  */
-function getMaxBidForPlayer(player, team) {
+function getMaxBidForPlayer(player, team, roomBudget = 120) {
   const tier = getPlayerTier(player);
-  const baseCap = MAX_BID_CAPS[tier];
+  const scaledCaps = getScaledMaxBidCaps(roomBudget);
+  const baseCap = scaledCaps[tier];
 
   // Adjust based on role needs
   const roleNeed = getRoleNeed(team);
-  const needMultiplier = roleNeed[player.role] > 0 ? 1.5 : 0.8;
+  const needMultiplier = roleNeed[player.role] > 0 ? 1.3 : 0.8; // Reduced from 1.5
 
-  // Adjust based on squad size - more aggressive early
+  // Adjust based on squad size - more conservative early to save for later
   const playerCount = team.players?.length || 0;
   let squadMultiplier = 1.0;
-  if (playerCount < 5) squadMultiplier = 1.8;
-  else if (playerCount < 10) squadMultiplier = 1.4;
-  else if (playerCount < 15) squadMultiplier = 1.0;
+  if (playerCount < 5) squadMultiplier = 1.3;      // Reduced from 1.8
+  else if (playerCount < 10) squadMultiplier = 1.1; // Reduced from 1.4
+  else if (playerCount < 15) squadMultiplier = 0.9;
   else squadMultiplier = 0.6;
 
-  return baseCap * needMultiplier * squadMultiplier;
+  let maxBid = baseCap * needMultiplier * squadMultiplier;
+
+  // ABSOLUTE CAP: Never spend more than 20% of total budget on any single player
+  // This ensures AI can build a balanced squad of 18+ players
+  const absoluteMaxCap = roomBudget * 0.20; // 20% of total budget
+  maxBid = Math.min(maxBid, absoluteMaxCap);
+
+  // Also cap at 15% of current remaining budget to be extra conservative
+  const currentBudgetCap = team.budget * 0.25;
+  maxBid = Math.min(maxBid, currentBudgetCap);
+
+  return Math.round(maxBid * 4) / 4; // Round to nearest 0.25
+}
+
+/**
+ * Calculate the maximum bid any AI team would place for a player (for skip feature)
+ * Returns the highest bid from interested AI teams, null if no AI interested
+ * @param {Object} room - Room object
+ * @returns {Object|null} { teamId, teamName, maxBid } or null
+ */
+function calculateAIMaxBid(room) {
+  if (!room.config.allowAI) return null;
+  if (!room.currentPlayer) return null;
+
+  const player = room.currentPlayer;
+  const roomBudget = room.config.budget || room.rules?.purse || 120;
+
+  // Get all eligible AI teams
+  const aiTeams = room.teams.filter(t => {
+    if (!t.isAI) return false;
+    if (t.players.length >= 25) return false;
+
+    // Check overseas limit
+    if (player.overseas) {
+      const osCount = t.players.filter(p => p.overseas).length;
+      if (osCount >= 8) return false;
+    }
+
+    // Check if team has enough budget
+    const reserve = getDynamicReserve(t, roomBudget);
+    if (t.budget <= reserve) return false;
+
+    return true;
+  });
+
+  if (!aiTeams.length) return null;
+
+  // Calculate max bid for each AI team
+  let bestBid = null;
+
+  for (const team of aiTeams) {
+    const maxBid = getMaxBidForPlayer(player, team, roomBudget);
+    const reserve = getDynamicReserve(team, roomBudget);
+    const affordableBid = Math.min(maxBid, team.budget - reserve);
+
+    // Must be at least base price
+    const effectiveBid = Math.max(player.basePrice || 0.5, affordableBid);
+
+    // Round to nearest 0.25
+    const roundedBid = Math.floor(effectiveBid / 0.25) * 0.25;
+
+    if (!bestBid || roundedBid > bestBid.maxBid) {
+      bestBid = {
+        teamId: team.id,
+        teamName: team.name,
+        maxBid: roundedBid
+      };
+    }
+  }
+
+  // Ensure AI bid is higher than current bid
+  if (bestBid) {
+    const currentBid = room.currentBid?.amount || 0;
+    if (bestBid.maxBid <= currentBid) {
+      return null; // AI can't outbid current bid
+    }
+  }
+
+  return bestBid;
 }
 
 /**
@@ -100,7 +207,8 @@ function shouldAIBid(room, team) {
   const nextBid = currentBid + 0.25;
 
   // Dynamic reserve check
-  const reserve = getDynamicReserve(team);
+  const roomBudget = room.config?.budget || room.rules?.purse || 120;
+  const reserve = getDynamicReserve(team, roomBudget);
   if (team.budget - nextBid < reserve) {
     return false;
   }
@@ -117,8 +225,8 @@ function shouldAIBid(room, team) {
     }
   }
 
-  // Get max bid cap for this player
-  const maxBid = getMaxBidForPlayer(player, team);
+  // Get max bid cap for this player (roomBudget already defined above)
+  const maxBid = getMaxBidForPlayer(player, team, roomBudget);
 
   // Don't bid if price exceeds our max cap
   if (nextBid > maxBid) {
@@ -157,6 +265,11 @@ function smartAIBid(room, io, placeBid) {
   if (!room.config.allowAI) return;
   if (!room.currentPlayer) return;
 
+  // Skip if AI bidding was skipped for this player
+  if (room.aiSkipped) {
+    return;
+  }
+
   const reserve = BASE_RESERVE;
   const aiTeams = room.teams.filter(t =>
     t.isAI &&
@@ -194,5 +307,7 @@ module.exports = {
   getRoleNeed,
   shouldAIBid,
   getDynamicReserve,
+  calculateAIMaxBid,
+  getScaledMaxBidCaps,
   MAX_BID_CAPS
 };

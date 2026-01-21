@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import SimplePeer from 'simple-peer';
 import { socket } from '../socket';
 
@@ -12,21 +12,72 @@ const VoiceChat = ({ roomId }) => {
     const [stream, setStream] = useState(null); // My audio stream
     const [isJoined, setIsJoined] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
+    const [connectionState, setConnectionState] = useState('idle'); // idle, connecting, connected, weak, error
+    const [retryCount, setRetryCount] = useState(0);
 
     const userAudioRef = useRef();
     const peersRef = useRef([]); // Keep track of peer instances to destroy them
     const socketRef = useRef(socket);
+    const connectionTimeoutRef = useRef(null);
+    const MAX_RETRIES = 3;
 
-    // Filter out our own echoes
+    // Update mute state on stream
     useEffect(() => {
         if (stream) {
-            // Initially mute our own audio track if we are muted
             stream.getAudioTracks().forEach(track => track.enabled = !isMuted);
         }
     }, [isMuted, stream]);
 
-    const joinVoice = () => {
-        navigator.mediaDevices.getUserMedia({ video: false, audio: true }).then(currentStream => {
+    // Monitor connection state
+    useEffect(() => {
+        if (isJoined) {
+            if (peers.length > 0) {
+                setConnectionState('connected');
+                // Clear any weak connection timeout
+                if (connectionTimeoutRef.current) {
+                    clearTimeout(connectionTimeoutRef.current);
+                    connectionTimeoutRef.current = null;
+                }
+            } else if (connectionState === 'connecting') {
+                // Set timeout to show "weak" after 5 seconds of no peers
+                connectionTimeoutRef.current = setTimeout(() => {
+                    if (peers.length === 0 && isJoined) {
+                        setConnectionState('weak');
+                    }
+                }, 5000);
+            }
+        }
+        return () => {
+            if (connectionTimeoutRef.current) {
+                clearTimeout(connectionTimeoutRef.current);
+            }
+        };
+    }, [peers.length, isJoined, connectionState]);
+
+    const cleanupVoice = useCallback(() => {
+        peersRef.current.forEach(p => {
+            if (p.peer) p.peer.destroy();
+        });
+        peersRef.current = [];
+        setPeers([]);
+
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+            setStream(null);
+        }
+
+        socketRef.current.off("all-voice-users");
+        socketRef.current.off("user-joined-voice");
+        socketRef.current.off("receiving-returned-signal");
+        socketRef.current.off("user-left-voice");
+    }, [stream]);
+
+    const joinVoice = useCallback(async () => {
+        setConnectionState('connecting');
+        setRetryCount(0);
+
+        try {
+            const currentStream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
             setStream(currentStream);
             setIsJoined(true);
 
@@ -38,70 +89,81 @@ const VoiceChat = ({ roomId }) => {
                 const peersArr = [];
                 users.forEach(userID => {
                     const peer = createPeer(userID, socketRef.current.id, currentStream);
-                    peersRef.current.push({
-                        peerID: userID,
-                        peer,
-                    });
-                    peersArr.push({
-                        peerID: userID,
-                        peer
-                    });
+                    peersRef.current.push({ peerID: userID, peer });
+                    peersArr.push({ peerID: userID, peer });
                 });
                 setPeers(peersArr);
+                if (users.length > 0) {
+                    setConnectionState('connected');
+                }
             });
 
             // 2. Someone else joined after us => They initiated, we receive signal
             socketRef.current.on("user-joined-voice", payload => {
                 const peer = addPeer(payload.signal, payload.callerID, currentStream);
-                peersRef.current.push({
-                    peerID: payload.callerID,
-                    peer,
-                });
-
+                peersRef.current.push({ peerID: payload.callerID, peer });
                 setPeers(users => [...users, { peerID: payload.callerID, peer }]);
             });
 
             // 3. Receive answer from the person we called
             socketRef.current.on("receiving-returned-signal", payload => {
                 const item = peersRef.current.find(p => p.peerID === payload.id);
-                if (item) {
-                    item.peer.signal(payload.signal);
+                if (item && item.peer) {
+                    try {
+                        item.peer.signal(payload.signal);
+                    } catch (e) {
+                        console.warn('[Voice] Signal error:', e);
+                    }
                 }
             });
 
             // 4. Peer disconnected
             socketRef.current.on("user-left-voice", id => {
                 const peerObj = peersRef.current.find(p => p.peerID === id);
-                if (peerObj) {
+                if (peerObj && peerObj.peer) {
                     peerObj.peer.destroy();
                 }
-                const peers = peersRef.current.filter(p => p.peerID !== id);
-                peersRef.current = peers;
-                setPeers(peers);
+                const updatedPeers = peersRef.current.filter(p => p.peerID !== id);
+                peersRef.current = updatedPeers;
+                setPeers(updatedPeers);
             });
-        }).catch(err => {
+        } catch (err) {
             console.error("Failed to get local stream", err);
+            setConnectionState('error');
             alert("Could not access microphone. Please allow permissions.");
-        });
-    };
-
-    const leaveVoice = () => {
-        setIsJoined(false);
-        setPeers([]);
-        peersRef.current.forEach(p => p.peer.destroy());
-        peersRef.current = [];
-
-        if (stream) {
-            stream.getTracks().forEach(track => track.stop());
-            setStream(null);
         }
+    }, [roomId]);
 
+    const leaveVoice = useCallback(() => {
+        setIsJoined(false);
+        setConnectionState('idle');
+        cleanupVoice();
         socketRef.current.emit("leave-voice", { roomId });
-        socketRef.current.off("all-voice-users");
-        socketRef.current.off("user-joined-voice");
-        socketRef.current.off("receiving-returned-signal");
-        socketRef.current.off("user-left-voice");
-    };
+    }, [roomId, cleanupVoice]);
+
+    // Auto-reconnect on error
+    const handlePeerError = useCallback((peerID, err) => {
+        console.warn(`[Voice] Peer ${peerID} error:`, err);
+
+        // Remove failed peer
+        const updatedPeers = peersRef.current.filter(p => p.peerID !== peerID);
+        peersRef.current = updatedPeers;
+        setPeers(updatedPeers);
+
+        // If no peers left and still joined, attempt reconnect
+        if (updatedPeers.length === 0 && isJoined && retryCount < MAX_RETRIES) {
+            console.log(`[Voice] Attempting reconnect (${retryCount + 1}/${MAX_RETRIES})...`);
+            setRetryCount(prev => prev + 1);
+            setConnectionState('connecting');
+
+            // Rejoin after delay
+            setTimeout(() => {
+                socketRef.current.emit("join-voice", { roomId });
+            }, 2000);
+        } else if (retryCount >= MAX_RETRIES) {
+            setConnectionState('weak');
+        }
+    }, [isJoined, retryCount, roomId]);
 
     function createPeer(userToSignal, callerID, stream) {
         const peer = new SimplePeer({
@@ -119,6 +181,8 @@ const VoiceChat = ({ roomId }) => {
         peer.on("signal", signal => {
             socketRef.current.emit("sending-signal", { userToSignal, callerID, signal });
         });
+
+        peer.on("error", err => handlePeerError(userToSignal, err));
 
         return peer;
     }
@@ -140,17 +204,40 @@ const VoiceChat = ({ roomId }) => {
             socketRef.current.emit("returning-signal", { signal, callerID });
         });
 
+        peer.on("error", err => handlePeerError(callerID, err));
+
         peer.signal(incomingSignal);
 
         return peer;
     }
+
+    // Get status display text
+    const getStatusText = () => {
+        switch (connectionState) {
+            case 'connecting': return '🔄 Connecting...';
+            case 'connected': return `✅ ${peers.length} active`;
+            case 'weak': return '⚠️ Weak Connection';
+            case 'error': return '❌ Error';
+            default: return '';
+        }
+    };
+
+    const getStatusColor = () => {
+        switch (connectionState) {
+            case 'connecting': return '#60a5fa';
+            case 'connected': return '#34d399';
+            case 'weak': return '#f59e0b';
+            case 'error': return '#ef4444';
+            default: return '#9ca3af';
+        }
+    };
 
     // UI Component for Floating Control
     return (
         <div style={{
             position: 'fixed',
             bottom: 24,
-            left: 24, // Bottom Left
+            left: 24,
             zIndex: 3000,
             display: 'flex',
             flexDirection: 'column',
@@ -173,8 +260,22 @@ const VoiceChat = ({ roomId }) => {
                     boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
                     gap: 8
                 }}>
-                    <div style={{ fontSize: 12, color: '#9ca3af', marginRight: 4 }}>
-                        {peers.length > 0 ? `${peers.length} active` : 'Weak Connection'}
+                    <div style={{
+                        fontSize: 12,
+                        color: getStatusColor(),
+                        marginRight: 4,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4
+                    }}>
+                        {connectionState === 'connecting' && (
+                            <span style={{
+                                display: 'inline-block',
+                                animation: 'spin 1s linear infinite',
+                                fontSize: 10
+                            }}>⟳</span>
+                        )}
+                        {getStatusText()}
                     </div>
 
                     {/* Mute Toggle */}
@@ -194,6 +295,28 @@ const VoiceChat = ({ roomId }) => {
                     >
                         {isMuted ? '🔇' : '🎙️'}
                     </button>
+
+                    {/* Retry Button (when weak) */}
+                    {connectionState === 'weak' && (
+                        <button
+                            onClick={() => {
+                                setRetryCount(0);
+                                setConnectionState('connecting');
+                                socketRef.current.emit("join-voice", { roomId });
+                            }}
+                            style={{
+                                width: 32, height: 32, borderRadius: '50%',
+                                border: '1px solid #f59e0b',
+                                background: 'rgba(245, 158, 11, 0.2)',
+                                color: '#f59e0b',
+                                fontSize: 14,
+                                cursor: 'pointer'
+                            }}
+                            title="Retry Connection"
+                        >
+                            🔄
+                        </button>
+                    )}
 
                     {/* Leave Button */}
                     <button
@@ -234,6 +357,12 @@ const VoiceChat = ({ roomId }) => {
                     <span>🎙️</span> Join Voice
                 </button>
             )}
+
+            <style>{`
+                @keyframes spin {
+                    to { transform: rotate(360deg); }
+                }
+            `}</style>
         </div>
     );
 };
@@ -260,3 +389,4 @@ const AudioPlayer = ({ peer }) => {
 };
 
 export default VoiceChat;
+

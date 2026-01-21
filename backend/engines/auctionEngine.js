@@ -10,7 +10,7 @@
  */
 
 const { autoFillTeams } = require("./aiAutoFillEngine");
-const { smartAIBid } = require("./aiBidEngine");
+const { smartAIBid, calculateAIMaxBid } = require("./aiBidEngine");
 const { generateAuctionSummary } = require("./auctionSummary");
 const { checkRTMEligibility, consumeRTMCard } = require("./retentionEngine");
 const serializeRoom = require("../utils/serializeRoom");
@@ -382,6 +382,9 @@ function finalizePlayer(room, io) {
 function advancePlayer(room, io) {
   room.currentIndex++;
 
+  // Reset AI skip flag for new player
+  room.aiSkipped = false;
+
   // Check if there are more players
   if (room.currentIndex < room.auctionPool.length) {
     room.currentPlayer = room.auctionPool[room.currentIndex];
@@ -724,6 +727,77 @@ function handleRTMDisconnect(room, socketId, io) {
   }
 }
 
+/**
+ * Skip AI bidding - instantly shows AI's max bid and disables further AI bidding
+ * Human can then choose to outbid or let AI win
+ * @param {Object} room - Room object
+ * @param {Object} io - Socket.io instance
+ * @returns {boolean} - Whether skip was successful
+ */
+function skipAIBidding(room, io) {
+  // Validate state
+  if (room.auctionState !== STATES.PLAYER_ACTIVE) {
+    console.log("[AI Skip] Rejected: Auction state is not PLAYER_ACTIVE");
+    return false;
+  }
+
+  if (!room.currentPlayer) {
+    console.log("[AI Skip] Rejected: No current player");
+    return false;
+  }
+
+  if (!room.config.allowAI) {
+    console.log("[AI Skip] Rejected: AI is not enabled");
+    return false;
+  }
+
+  // Already skipped
+  if (room.aiSkipped) {
+    console.log("[AI Skip] Already skipped for this player");
+    return false;
+  }
+
+  // Calculate AI's max bid
+  const aiBid = calculateAIMaxBid(room);
+
+  if (!aiBid) {
+    console.log(`[AI Skip] No AI teams can outbid for ${room.currentPlayer.name}`);
+    room.aiSkipped = true;
+
+    // More informative message based on current state
+    const currentBidder = room.teams.find(t => t.id === room.lastBidTeamId);
+    let message = currentBidder
+      ? `AI won't counter - ${currentBidder.name} holds the bid!`
+      : `No AI teams interested in ${room.currentPlayer.name}`;
+
+    io.to(room.id).emit("room-update", serializeRoom(room));
+    io.to(room.id).emit("notification", {
+      type: "success",
+      message: `⏩ AI Skip: ${message}`
+    });
+    return true;
+  }
+
+  // Set AI's max bid as current bid
+  room.currentBid = { teamId: aiBid.teamId, amount: aiBid.maxBid };
+  room.lastBidTeamId = aiBid.teamId;
+  room.aiSkipped = true; // Disable further AI bidding
+
+  // Reset timer to give human time to decide
+  room.bidEndsAt = Date.now() + 15 * 1000; // 15 seconds to decide
+
+  console.log(`[AI Skip] ${aiBid.teamName} max bid: ₹${aiBid.maxBid}Cr on ${room.currentPlayer.name}`);
+
+  // Emit update
+  io.to(room.id).emit("room-update", serializeRoom(room));
+  io.to(room.id).emit("notification", {
+    type: "info",
+    message: `⏩ AI Skip: ${aiBid.teamName} bids ₹${aiBid.maxBid}Cr (AI won't counter)`
+  });
+
+  return true;
+}
+
 module.exports = {
   STATES,
   startTimer,
@@ -733,5 +807,6 @@ module.exports = {
   resolveRTM,
   startRTMTimer,
   handleRTMDisconnect,
+  skipAIBidding,
   MAX_OVERSEAS_PER_TEAM
 };

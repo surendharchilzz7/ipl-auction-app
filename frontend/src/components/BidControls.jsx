@@ -20,7 +20,7 @@ const TEAM_LOGOS = {
 };
 
 export default function BidControls({
-  roomId, teamId, myTeam, currentBid, lastBidTeamId, isHost, player
+  roomId, teamId, myTeam, currentBid, lastBidTeamId, isHost, player, allowAI, aiSkipped
 }) {
   const canBid = myTeam && lastBidTeamId !== teamId;
   const basePrice = player?.basePrice || 0;
@@ -35,6 +35,9 @@ export default function BidControls({
 
   const canSkip = isHost && !currentBid;
 
+  // Can skip AI if: AI is enabled, not already skipped, and user has a team
+  const canSkipAI = allowAI && !aiSkipped && myTeam;
+
   function placeBid() {
     if (!canBid || !hasEnoughBudget) return;
     socket.emit("place-bid", { roomId, teamId });
@@ -43,6 +46,11 @@ export default function BidControls({
   function skipPlayer() {
     if (!canSkip) return;
     socket.emit("skip-player", { roomId });
+  }
+
+  function skipAIBidding() {
+    if (!canSkipAI) return;
+    socket.emit("skip-ai-bidding", { roomId });
   }
 
   const buttonBase = {
@@ -141,7 +149,35 @@ export default function BidControls({
             )}
           </button>
 
+          {/* Skip AI Bidding Button */}
+          {canSkipAI && (
+            <button
+              onClick={skipAIBidding}
+              style={{
+                ...buttonBase,
+                background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                color: '#fff',
+                boxShadow: '0 4px 20px rgba(245, 158, 11, 0.4)'
+              }}
+            >
+              ⏩ Skip AI Bidding
+            </button>
+          )}
 
+          {/* AI Skipped Indicator */}
+          {aiSkipped && (
+            <div style={{
+              padding: 12,
+              background: 'rgba(245, 158, 11, 0.2)',
+              border: '1px solid rgba(245, 158, 11, 0.5)',
+              borderRadius: 10,
+              textAlign: 'center',
+              color: '#fbbf24',
+              marginBottom: 12
+            }}>
+              ⚡ AI bid locked - won't counter!
+            </div>
+          )}
 
           {/* Active Bid Indicator */}
           {lastBidTeamId === teamId && (

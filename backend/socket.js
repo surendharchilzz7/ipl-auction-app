@@ -22,7 +22,8 @@ const {
   placeBid,
   skipPlayer,
   resolveRTM,
-  handleRTMDisconnect
+  handleRTMDisconnect,
+  skipAIBidding
 } = require("./engines/auctionEngine");
 
 const {
@@ -338,6 +339,22 @@ module.exports = server => {
       }
     });
 
+    // Skip AI bidding - instantly show AI's max bid
+    socket.on("skip-ai-bidding", ({ roomId }) => {
+      try {
+        const room = rooms[roomId];
+        if (!room) {
+          console.log("[skip-ai-bidding] Room not found:", roomId);
+          return;
+        }
+
+        // skipAIBidding handles its own room update emission
+        skipAIBidding(room, io);
+      } catch (err) {
+        console.error("[skip-ai-bidding] Error:", err);
+      }
+    });
+
     // End auction early (host only)
     socket.on("end-auction", ({ roomId }) => {
       try {
@@ -395,6 +412,26 @@ module.exports = server => {
       } catch (err) {
         console.error("[end-auction] ERROR:", err);
         console.error("[end-auction] Stack:", err.stack);
+      }
+    });
+
+    // ============ TEXT CHAT ============
+    socket.on("send-chat-message", ({ roomId, username, text }) => {
+      try {
+        const room = rooms[roomId];
+        if (!room) return;
+
+        const message = {
+          username: username || 'Anonymous',
+          text: text.substring(0, 500), // Limit message length
+          timestamp: Date.now()
+        };
+
+        // Broadcast to all users in the room including sender
+        io.to(roomId).emit("chat-message", message);
+        console.log(`[Chat] ${username} in ${roomId}: ${text.substring(0, 50)}...`);
+      } catch (err) {
+        console.error("[send-chat-message] Error:", err);
       }
     });
 

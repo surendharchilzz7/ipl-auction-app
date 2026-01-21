@@ -118,6 +118,9 @@ module.exports = room => {
       rtmPending: room.rtmPending || null,
       rtmCardsRemaining: room.rtmCardsRemaining || {},
 
+      // AI Skip state
+      aiSkipped: room.aiSkipped || false,
+
       // Auction pool for sets modal (during running auction)
       auctionPool: room.state === "AUCTION_RUNNING"
         ? (room.auctionPool || []).map(p => ({

@@ -9,6 +9,7 @@ import TeamPanel from "../components/TeamPanel";
 import PlayerImage from "../components/PlayerImage";
 import { getPlayerPhotoUrl, DEFAULT_PLAYER_IMAGE } from "../data/playerPhotos";
 import VoiceChat from "../components/VoiceChat";
+import TextChat from "../components/TextChat";
 import AdBanner from "../components/AdBanner";
 import auctionVoice from "../utils/auctionVoice";
 
@@ -473,7 +474,7 @@ export default function Auction({ room, timeOffset }) {
           </div>
 
           {/* Full Team Squads */}
-          <TeamPanel teams={room.teams} />
+          <TeamPanel teams={room.teams} maxBudget={room.config?.budget || room.rules?.purse || 120} />
         </div>
       </div >
     );
@@ -696,6 +697,7 @@ export default function Auction({ room, timeOffset }) {
       overflow: 'hidden'
     }}>
       <VoiceChat roomId={room.id} />
+      <TextChat roomId={room.id} username={sessionStorage.getItem("auctionUsername") || 'Guest'} />
       <div style={{
         flex: 1,
         display: 'flex',
@@ -1412,7 +1414,7 @@ export default function Auction({ room, timeOffset }) {
                 // Buying team can counter or accept
                 (() => {
                   const minCounter = room.rtmPending.currentBid + 0.25;
-                  const maxCounter = myTeam?.budget || 120;
+                  const maxCounter = myTeam?.budget || room.config?.budget || room.rules?.purse || 120;
                   const effectiveCounter = counterAmount > 0 ? counterAmount : minCounter;
 
                   return (
@@ -1639,6 +1641,8 @@ export default function Auction({ room, timeOffset }) {
                 lastBidTeamId={room.lastBidTeamId}
                 bidEndsAt={room.bidEndsAt}
                 timeOffset={timeOffset}
+                allowAI={room.config?.allowAI}
+                aiSkipped={room.aiSkipped}
               />
             </div>
           </div>
@@ -1650,7 +1654,7 @@ export default function Auction({ room, timeOffset }) {
           overflowY: 'auto',
           paddingRight: 8
         }}>
-          <TeamPanel teams={room.teams} hostSocketId={room.hostSocketId} />
+          <TeamPanel teams={room.teams} hostSocketId={room.hostSocketId} maxBudget={room.config?.budget || room.rules?.purse || 120} />
         </div>
         {/* Right Side - The CONSOLE (Data Only) */}
 
@@ -1914,11 +1918,11 @@ export default function Auction({ room, timeOffset }) {
                               opacity: (player.sold || isUnsold) ? 0.7 : 1
                             }}>
                               <div style={{ display: 'flex', gap: 8, alignItems: 'center', flex: 1 }}>
-                                <img
-                                  src={getPlayerPhotoUrl(player.name)}
-                                  alt={player.name}
-                                  style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover', background: '#1e293b' }}
-                                  onError={e => e.target.src = DEFAULT_PLAYER_IMAGE}
+                                <PlayerImage
+                                  name={player.name}
+                                  role={player.role}
+                                  size={40}
+                                  showRole={false}
                                 />
                                 <div style={{ overflow: 'hidden' }}>
                                   <div style={{ color: '#fff', fontWeight: 'bold', fontSize: 14, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{player.name}</div>
@@ -2071,8 +2075,11 @@ export default function Auction({ room, timeOffset }) {
                           <div style={{ display: 'grid', gridTemplateColumns: window.innerWidth < 768 ? '1fr' : 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
                             {purchases.map((player, idx) => (
                               <div key={idx} style={{ background: 'rgba(255,255,255,0.05)', padding: 10, borderRadius: 8, display: 'flex', alignItems: 'center', gap: 12 }}>
-                                <img src={getPlayerPhotoUrl(player.name)} alt={player.name} style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover' }}
-                                  onError={e => { e.target.onerror = null; e.target.src = DEFAULT_PLAYER_IMAGE }}
+                                <PlayerImage
+                                  name={player.name}
+                                  role={player.role}
+                                  size={40}
+                                  showRole={false}
                                 />
                                 <div style={{ flex: 1, overflow: 'hidden' }}>
                                   <div style={{ color: '#fff', fontWeight: '500', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{player.name}</div>

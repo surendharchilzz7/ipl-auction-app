@@ -73,50 +73,95 @@ const MAX_OVERSEAS = 8;
  * @param {Object} player 
  * @param {Object} team
  * @param {number} slotsToFill - Number of players needed to reach MIN_SQUAD
+ * @param {number} roomBudget - Room's configured budget (default 120)
+ * @param {number} slotsToFill - Number of players to fill (Mandatory or Optional count)
+ * @param {number} roomBudget - Room's configured budget (default 120)
+ * @param {boolean} isOptional - Whether this is for optional slots (>18)
  * @returns {number} Calculated price in Cr
  */
-function calculateAutoFillPrice(player, team, slotsToFill) {
+function calculateAutoFillPrice(player, team, slotsToFill, roomBudget = 120, isOptional = false) {
   const basePrice = player.basePrice || 0.2;
   const remainingBudget = team.budget || 0;
 
-  // Reserve minimum amount for other slots to fill (0.2 Cr per slot)
-  const reservedForOthers = Math.max(0, (slotsToFill - 1)) * 0.2;
+  // Calculate how much we can spend on average per remaining slot
+  const avgBudgetPerSlot = remainingBudget / Math.max(1, slotsToFill);
+
+  // Reserve minimum amount for other slots (0.25 Cr per slot)
+  const reservedForOthers = Math.max(0, (slotsToFill - 1)) * 0.25;
   const maxAffordable = Math.max(0.2, remainingBudget - reservedForOthers);
 
   let desiredPrice = basePrice;
 
-  // Check if player is in top list
+  // LOGIC: Rich teams should spend aggressively
+  // If a team has huge budget per slot (> 5 Cr), they should pay inflated prices
+  let wealthMultiplier = 1.0;
+  if (avgBudgetPerSlot > 15) wealthMultiplier = 3.0;      // Very rich
+  else if (avgBudgetPerSlot > 10) wealthMultiplier = 2.0; // Rich
+  else if (avgBudgetPerSlot > 5) wealthMultiplier = 1.5;  // Comfortable
+  else if (avgBudgetPerSlot < 1) wealthMultiplier = 0.8;  // Poor - tries to save
+
+  // Base valuation based on player status
   if (TOP_PLAYERS.includes(player.name)) {
-    // Top players go for 30-40 Cr
-    desiredPrice = 30 + (Math.random() * 10);
+    // Top players: 30-40% of TOTAL room budget
+    // We do NOT apply wealthMultiplier here effectively, as these prices are already ceiling
+    const roomScale = roomBudget * 0.35;
+    const teamScale = remainingBudget * 0.40;
+
+    // Use a much milder multiplier for stars (max 1.2x) to show "rich team tax" but not insanity
+    const starMultiplier = 1.0 + ((wealthMultiplier - 1.0) * 0.2);
+
+    desiredPrice = Math.min(teamScale, roomScale) * starMultiplier;
+
+    // Randomize
+    desiredPrice += (Math.random() * 5);
   } else if (basePrice >= 2) {
-    // 2 Cr base price players go for 5-10 Cr
-    desiredPrice = 5 + (Math.random() * 5);
+    // Premium players: 5-10 Cr + wealth bonus
+    desiredPrice = (5 + (Math.random() * 5)) * wealthMultiplier;
+  } else if (basePrice >= 0.5) {
+    // Mid players: 1-3 Cr + wealth bonus
+    desiredPrice = (1 + (Math.random() * 2)) * wealthMultiplier;
+  } else {
+    // Uncapped / Low base: 
+    if (wealthMultiplier > 1.5) desiredPrice = 0.5 + Math.random();
+    else desiredPrice = basePrice + (Math.random() * 0.2);
   }
 
   // Ensure desired price is at least the base price
   desiredPrice = Math.max(desiredPrice, basePrice);
 
   // If desired price is more than we can afford, cap it
-  // But ensure it doesn't go below base price if possible (unless base price itself is unaffordable)
   let finalPrice = Math.min(desiredPrice, maxAffordable);
 
-  // Strict check: If we can afford the base price, NEVER go below it.
+  // STRICT RULE: If we can afford base price, we ensure we don't go below it 
+  // (Handled by rounding later, but good to clamp here)
   if (finalPrice < basePrice && maxAffordable >= basePrice) {
     finalPrice = basePrice;
   }
 
   // Dynamic Floor: 
-  // If it's a mandatory slot (to reach MIN_SQUAD), we prioritize the budget not going negative.
-  // Otherwise, we use the standard 0.2 Cr floor.
-  if (slotsToFill > 0) {
-    // For mandatory slots, the absolute floor is 0.01 if the budget is very tight.
-    // This prevents negative budgets while still reaching the minimum squad size.
+  if (!isOptional && slotsToFill > 0) {
+    // For MANDATORY slots check, allow draining down to fit
     finalPrice = Math.max(0.01, Math.min(finalPrice, remainingBudget));
   } else {
-    // For optional slots (above MIN_SQUAD), the absolute floor is 0.2 Cr.
+    // For optional slots, strict floor of 0.2
     finalPrice = Math.max(0.2, finalPrice);
   }
+
+  // Final safeguard to preserve a tiny bit of purse if possible (unless forced)
+  if (remainingBudget - finalPrice < 0.5 && remainingBudget > basePrice + 1.0) {
+    // If we are about to drain the purse but have plenty, reduce bid slightly
+    finalPrice = remainingBudget - 0.5;
+  }
+
+  // CRITICAL: Round to nearest 0.25 to match auction rules
+  let rounded = Math.round(finalPrice * 4) / 4;
+
+  // STRICT RULE: Price cannot be lower than base price
+  if (rounded < basePrice) {
+    rounded = basePrice;
+  }
+
+  finalPrice = rounded;
 
   return finalPrice;
 }
@@ -128,6 +173,9 @@ function calculateAutoFillPrice(player, team, slotsToFill) {
  */
 function autoFillTeams(room) {
   console.log("[AutoFill] Starting auto-fill to minimum squad of", MIN_SQUAD);
+
+  // Get room budget for scaling
+  const roomBudget = room.config?.budget || room.rules?.purse || 120;
 
   // Collect unsold players
   const pool = [];
@@ -235,13 +283,15 @@ function autoFillTeams(room) {
       if (playerIdx === -1) break;
 
       const player = pool.splice(playerIdx, 1)[0];
-      const soldPrice = calculateAutoFillPrice(player, team, slotsToFill);
+      const soldPrice = calculateAutoFillPrice(player, team, slotsToFill, roomBudget);
 
       const finalizedPrice = Number(soldPrice.toFixed(2));
 
       // STRICT CHECK: Don't buy if we can't afford it
+      // STRICT CHECK: Don't buy if we can't afford it
       if (finalizedPrice > team.budget) {
         console.log(`[AutoFill] ${team.name} can't afford ${player.name} (${finalizedPrice} > ${team.budget}), skipping.`);
+        // If we can't afford even the base price, we stop filling for this team.
         pool.unshift(player); // Put back in pool
         break;
       }
@@ -310,7 +360,12 @@ function autoFillTeams(room) {
       if (playerIdx === -1) continue;
 
       const player = pool.splice(playerIdx, 1)[0];
-      const soldPrice = calculateAutoFillPrice(player, team, 0); // Pass 0 for optional slots
+
+      // Calculate remaining capacity to split budget evenly
+      const optionalSlotsToFill = MAX_SQUAD - (team.players ? team.players.length : 0);
+
+      // Pass optionalSlotsToFill and true for isOptional
+      const soldPrice = calculateAutoFillPrice(player, team, optionalSlotsToFill, roomBudget, true);
       const finalizedPrice = Number(soldPrice.toFixed(2));
 
       // FINAL SAFETY CHECK: Don't make budget negative

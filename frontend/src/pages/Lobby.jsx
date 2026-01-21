@@ -151,6 +151,7 @@ export default function Lobby() {
   const [roomId, setRoomId] = useState("");
   const [allowAI, setAllowAI] = useState(false);
   const [retentionEnabled, setRetentionEnabled] = useState(false);
+  const [budget, setBudget] = useState(120); // Default 120 Cr
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState('create'); // 'create' or 'join'
 
@@ -181,7 +182,7 @@ export default function Lobby() {
 
     socket.emit("create-room", {
       username: name.trim(),
-      config: { allowAI, retentionEnabled }
+      config: { allowAI, retentionEnabled, budget }
     });
   }
 
@@ -311,6 +312,50 @@ export default function Lobby() {
                   <div style={{ fontSize: 12, color: '#94a3b8' }}>Pre-auction retention phase</div>
                 </div>
               </label>
+
+              {/* Budget Selector */}
+              <div style={{
+                ...styles.checkbox,
+                border: '1px solid #f59e0b',
+                flexDirection: 'column',
+                alignItems: 'stretch',
+                gap: 12
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <span style={{ fontSize: 24 }}>💰</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ color: '#fff', fontWeight: 500 }}>Team Budget</div>
+                    <div style={{ fontSize: 12, color: '#94a3b8' }}>Starting purse for each team</div>
+                  </div>
+                  <div style={{
+                    fontSize: 20,
+                    fontWeight: 'bold',
+                    color: '#f59e0b',
+                    minWidth: 80,
+                    textAlign: 'right'
+                  }}>
+                    ₹{budget} Cr
+                  </div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <span style={{ color: '#9ca3af', fontSize: 12 }}>120</span>
+                  <input
+                    type="range"
+                    min="120"
+                    max="200"
+                    step="10"
+                    value={budget}
+                    onChange={e => setBudget(parseInt(e.target.value))}
+                    style={{
+                      flex: 1,
+                      height: 8,
+                      cursor: 'pointer',
+                      accentColor: '#f59e0b'
+                    }}
+                  />
+                  <span style={{ color: '#9ca3af', fontSize: 12 }}>200</span>
+                </div>
+              </div>
             </div>
 
             <button
@@ -343,6 +388,27 @@ export default function Lobby() {
           </div>
         )}
       </div>
+
+      {/* Footer Links for Static Pages */}
+      <footer style={{
+        position: 'absolute',
+        bottom: 20,
+        left: 0,
+        right: 0,
+        textAlign: 'center',
+        zIndex: 10
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 24, flexWrap: 'wrap' }}>
+          <a href="/about" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: 13 }}>About</a>
+          <a href="/how-to-play" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: 13 }}>How to Play</a>
+          <a href="/privacy" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: 13 }}>Privacy</a>
+          <a href="/terms" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: 13 }}>Terms</a>
+          <a href="/contact" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: 13 }}>Contact</a>
+        </div>
+        <p style={{ color: '#6b7280', fontSize: 11, marginTop: 8 }}>
+          © 2024 IPL Mock Auction. Created by Surendhar.
+        </p>
+      </footer>
 
       <style>{`
         @keyframes bounce {

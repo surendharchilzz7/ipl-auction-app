@@ -40,7 +40,7 @@ export default function Retention({ room }) {
   // IPL 2025 Rule: Max 6 retentions, RTM cards = 6 - retentions
   const maxRetentions = 6;
   const retentionCosts = room.retentionCosts || [15, 11, 7, 4, 4];
-  const purse = room.rules?.purse || 120;
+  const purse = room.config?.budget || room.rules?.purse || 120;
 
   // Calculate RTM cards user will get
   const rtmCardsWillGet = Math.max(0, maxRetentions - retainedIds.length);

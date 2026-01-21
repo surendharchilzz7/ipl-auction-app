@@ -58,7 +58,7 @@ function TeamLogo({ name, size = 32 }) {
   );
 }
 
-export default function TeamPanel({ teams, compact = false, hostSocketId = null }) {
+export default function TeamPanel({ teams, compact = false, hostSocketId = null, maxBudget = 120 }) {
   if (!Array.isArray(teams) || teams.length === 0) return null;
 
   const sortedTeams = [...teams].sort((a, b) => b.budget - a.budget);
@@ -247,7 +247,7 @@ export default function TeamPanel({ teams, compact = false, hostSocketId = null 
             <div style={{ marginBottom: 16 }}>
               <div style={{ height: 6, background: 'rgba(255,255,255,0.1)', borderRadius: 3, overflow: 'hidden', position: 'relative' }}>
                 <div className="bar-shine" style={{
-                  width: `${(team.budget / 120) * 100}%`,
+                  width: `${(team.budget / maxBudget) * 100}%`,
                   height: '100%',
                   background: team.budget < 15 ? 'linear-gradient(90deg, #ef4444, #b91c1c)' : 'linear-gradient(90deg, #10b981, #059669)',
                   transition: 'width 1s cubic-bezier(0.4, 0, 0.2, 1)',

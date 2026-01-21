@@ -30,7 +30,8 @@ const TEAM_LOGOS = {
 
 export default function PlayerCard({
   player, currentBid, teams, onSkip, canSkip,
-  myTeam, roomId, lastBidTeamId, bidEndsAt, timeOffset // Added props
+  myTeam, roomId, lastBidTeamId, bidEndsAt, timeOffset, // Added props
+  allowAI, aiSkipped // AI skip props
 }) {
   const [imageError, setImageError] = useState(false);
 
@@ -56,9 +57,17 @@ export default function PlayerCard({
   const currentOverseasCount = myTeam?.players?.filter(p => p.overseas).length || 0;
   const overseasLimitReached = isOverseasPlayer && currentOverseasCount >= MAX_OVERSEAS;
 
+  // Can skip AI if: AI is enabled, not already skipped, and user has a team
+  const canSkipAI = allowAI && !aiSkipped && myTeam;
+
   function placeBid() {
     if (!canBid || !hasEnoughBudget || overseasLimitReached) return;
     socket.emit("place-bid", { roomId, teamId });
+  }
+
+  function skipAIBidding() {
+    if (!canSkipAI) return;
+    socket.emit("skip-ai-bidding", { roomId });
   }
   // ---------------------
 
@@ -273,6 +282,48 @@ export default function PlayerCard({
                 >
                   {overseasLimitReached ? '🚫 Overseas Limit Reached' : (lastBidTeamId === teamId ? '⏳ You hold the bid' : `💰 Bid ₹${nextBid.toFixed(2)} Cr`)}
                 </button>
+              )}
+
+              {/* Skip AI Bidding Button */}
+              {canSkipAI && (
+                <button
+                  onClick={skipAIBidding}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    marginTop: 8,
+                    background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                    border: 'none',
+                    borderRadius: 10,
+                    color: '#fff',
+                    fontWeight: 'bold',
+                    fontSize: 14,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    boxShadow: '0 4px 15px rgba(245, 158, 11, 0.4)'
+                  }}
+                >
+                  ⏩ Skip AI Bidding
+                </button>
+              )}
+
+              {/* AI Skipped Indicator */}
+              {aiSkipped && (
+                <div style={{
+                  padding: 10,
+                  marginTop: 8,
+                  background: 'rgba(245, 158, 11, 0.2)',
+                  border: '1px solid rgba(245, 158, 11, 0.5)',
+                  borderRadius: 10,
+                  textAlign: 'center',
+                  color: '#fbbf24',
+                  fontSize: 13
+                }}>
+                  ⚡ AI bid locked - won't counter!
+                </div>
               )}
             </div>
           ) : (

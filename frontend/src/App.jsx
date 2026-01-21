@@ -7,11 +7,26 @@ import PoolFilter from "./pages/PoolFilter";
 import Retention from "./pages/Retention";
 import Auction from "./pages/Auction";
 
+// Static Pages for AdSense compliance
+import About from "./pages/About";
+import HowToPlay from "./pages/HowToPlay";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
+import Contact from "./pages/Contact";
+
 export default function App() {
   const [room, setRoom] = useState(null);
   const [connected, setConnected] = useState(socket.connected);
   const [error, setError] = useState(null);
   const [timeOffset, setTimeOffset] = useState(0);
+  const [currentPath, setCurrentPath] = useState(window.location.pathname);
+
+  // Handle browser navigation for static pages
+  useEffect(() => {
+    const handlePopState = () => setCurrentPath(window.location.pathname);
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   useEffect(() => {
     // Check for room code in URL on mount
@@ -123,12 +138,87 @@ export default function App() {
 
   if (!connected) {
     return (
-      <>
-        <div style={{ color: '#fff', textAlign: 'center', marginTop: 100 }}>Connecting to server...</div>
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #0f172a, #1e293b)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontFamily: '"Outfit", system-ui, sans-serif',
+        color: '#fff',
+        padding: 20
+      }}>
+        {/* Animated Logo */}
+        <div style={{
+          fontSize: 80,
+          marginBottom: 24,
+          animation: 'bounce 1.5s infinite ease-in-out'
+        }}>
+          🏏
+        </div>
+
+        <h1 style={{
+          fontSize: 32,
+          fontWeight: 'bold',
+          marginBottom: 8,
+          background: 'linear-gradient(to right, #60a5fa, #a78bfa)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent'
+        }}>
+          IPL Mock Auction
+        </h1>
+
+        <p style={{ color: '#9ca3af', marginBottom: 32, fontSize: 14 }}>
+          The ultimate real-time auction simulator
+        </p>
+
+        {/* Loading Spinner */}
+        <div style={{
+          width: 48,
+          height: 48,
+          border: '3px solid rgba(96, 165, 250, 0.2)',
+          borderTop: '3px solid #60a5fa',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite',
+          marginBottom: 24
+        }} />
+
+        <p style={{ color: '#60a5fa', fontSize: 16, fontWeight: 500 }}>
+          Connecting to server...
+        </p>
+
+        <p style={{
+          color: '#6b7280',
+          fontSize: 12,
+          marginTop: 12,
+          textAlign: 'center',
+          maxWidth: 300
+        }}>
+          ⏱️ First load may take 15-30 seconds as server wakes up
+        </p>
+
         <div style={footerStyle}>By Surendhar</div>
-      </>
+
+        <style>{`
+          @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+          }
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
     );
   }
+
+  // Check for static pages first (before room/socket logic)
+  if (currentPath === '/about') return <About />;
+  if (currentPath === '/how-to-play') return <HowToPlay />;
+  if (currentPath === '/privacy') return <Privacy />;
+  if (currentPath === '/terms') return <Terms />;
+  if (currentPath === '/contact') return <Contact />;
 
   let content;
   if (!room) {
