@@ -12,20 +12,45 @@ const ROLE_INFO = {
 
 const TEAM_COLORS = {
   CSK: '#f9cd05', MI: '#004ba0', RCB: '#ec1c24', KKR: '#3a225d', SRH: '#ff822a',
-  RR: '#ea1a85', DC: '#0078bc', PBKS: '#ed1b24', LSG: '#00b7eb', GT: '#1c1c1c'
+  RR: '#ea1a85', DC: '#0078bc', PBKS: '#ed1b24', LSG: '#00b7eb', GT: '#1c1c1c',
+  // Historical
+  DD: '#dc2626', DEC: '#1f2937', PWI: '#0f766e', KTK: '#ea580c', GL: '#facc15', RPS: '#831843'
 };
 
+// Verified Local Logos
 const TEAM_LOGOS = {
-  CSK: 'https://documents.iplt20.com/ipl/CSK/Logos/Roundbig/CSKroundbig.png',
-  MI: 'https://documents.iplt20.com/ipl/MI/Logos/Roundbig/MIroundbig.png',
-  RCB: 'https://documents.iplt20.com/ipl/RCB/Logos/Roundbig/RCBroundbig.png',
-  KKR: 'https://documents.iplt20.com/ipl/KKR/Logos/Roundbig/KKRroundbig.png',
-  SRH: 'https://documents.iplt20.com/ipl/SRH/Logos/Roundbig/SRHroundbig.png',
-  RR: 'https://documents.iplt20.com/ipl/RR/Logos/Roundbig/RRroundbig.png',
-  DC: 'https://documents.iplt20.com/ipl/DC/Logos/Roundbig/DCroundbig.png',
-  PBKS: 'https://documents.iplt20.com/ipl/PBKS/Logos/Roundbig/PBKSroundbig.png',
-  LSG: 'https://documents.iplt20.com/ipl/LSG/Logos/Roundbig/LSGroundbig.png',
-  GT: 'https://documents.iplt20.com/ipl/GT/Logos/Roundbig/GTroundbig.png'
+  // Short Codes
+  CSK: '/team-logos/CSK.png',
+  MI: '/team-logos/MI.png',
+  RCB: '/team-logos/RCB.png',
+  KKR: '/team-logos/KKR.png',
+  SRH: '/team-logos/SRH.png',
+  RR: '/team-logos/RR.png',
+  DC: '/team-logos/DC.png',
+  PBKS: '/team-logos/PBKS.png',
+  LSG: '/team-logos/LSG.png',
+  GT: '/team-logos/GT.png',
+
+  // Full Names (Mapping for safety)
+  "Chennai Super Kings": '/team-logos/CSK.png',
+  "Mumbai Indians": '/team-logos/MI.png',
+  "Royal Challengers Bengaluru": '/team-logos/RCB.png',
+  "Royal Challengers Bangalore": '/team-logos/RCB.png',
+  "Kolkata Knight Riders": '/team-logos/KKR.png',
+  "Sunrisers Hyderabad": '/team-logos/SRH.png',
+  "Rajasthan Royals": '/team-logos/RR.png',
+  "Delhi Capitals": '/team-logos/DC.png',
+  "Punjab Kings": '/team-logos/PBKS.png',
+  "Lucknow Super Giants": '/team-logos/LSG.png',
+  "Gujarat Titans": '/team-logos/GT.png',
+
+  // Historical
+  DD: '/team-logos/DD.png',
+  DEC: '/team-logos/DEC.png',
+  PWI: '/team-logos/PWI.png',
+  KTK: '/team-logos/KTK.png',
+  GL: '/team-logos/GL.png',
+  RPS: '/team-logos/RPS.png'
 };
 
 export default function PlayerCard({

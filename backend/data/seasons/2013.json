@@ -1,0 +1,1535 @@
+{
+  "season": 2013,
+  "teams": [
+    "CSK",
+    "DC",
+    "KKR",
+    "MI",
+    "PBKS",
+    "RR",
+    "RCB",
+    "SRH",
+    "PWI"
+  ],
+  "players": [
+    {
+      "id": "MS_Dhoni_2013",
+      "name": "MS Dhoni",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "CSK"
+    },
+    {
+      "id": "Wriddhiman_Saha_2013",
+      "name": "Wriddhiman Saha",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "CSK"
+    },
+    {
+      "id": "Murali_Vijay_2013",
+      "name": "Murali Vijay",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "CSK"
+    },
+    {
+      "id": "Srikkanth_Anirudha_2013",
+      "name": "Srikkanth Anirudha",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "CSK"
+    },
+    {
+      "id": "Subramaniam_Badrinath_2013",
+      "name": "Subramaniam Badrinath",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "CSK"
+    },
+    {
+      "id": "Suresh_Raina_2013",
+      "name": "Suresh Raina",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "CSK"
+    },
+    {
+      "id": "Michael_Hussey_2013",
+      "name": "Michael Hussey",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "CSK"
+    },
+    {
+      "id": "Faf_du_Plessis_2013",
+      "name": "Faf du Plessis",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "CSK"
+    },
+    {
+      "id": "Chris_Morris_2013",
+      "name": "Chris Morris",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "CSK"
+    },
+    {
+      "id": "Ravichandran_Ashwin_2013",
+      "name": "Ravichandran Ashwin",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "CSK"
+    },
+    {
+      "id": "Ravindra_Jadeja_2013",
+      "name": "Ravindra Jadeja",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "CSK"
+    },
+    {
+      "id": "Dwayne_Bravo_2013",
+      "name": "Dwayne Bravo",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "CSK"
+    },
+    {
+      "id": "Albie_Morkel_2013",
+      "name": "Albie Morkel",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "CSK"
+    },
+    {
+      "id": "Jason_Holder_2013",
+      "name": "Jason Holder",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "CSK"
+    },
+    {
+      "id": "Vijay_Shankar_2013",
+      "name": "Vijay Shankar",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "CSK"
+    },
+    {
+      "id": "Shadab_Jakati_2013",
+      "name": "Shadab Jakati",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "CSK"
+    },
+    {
+      "id": "Akila_Dananjaya_2013",
+      "name": "Akila Dananjaya",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "CSK"
+    },
+    {
+      "id": "Ben_Hilfenhaus_2013",
+      "name": "Ben Hilfenhaus",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "CSK"
+    },
+    {
+      "id": "Ankit_Rajpoot_2013",
+      "name": "Ankit Rajpoot",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "CSK"
+    },
+    {
+      "id": "Mohit_Sharma_2013",
+      "name": "Mohit Sharma",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "CSK"
+    },
+    {
+      "id": "Ronit_More_2013",
+      "name": "Ronit More",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "CSK"
+    },
+    {
+      "id": "Nuwan_Kulasekara_2013",
+      "name": "Nuwan Kulasekara",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "CSK"
+    },
+    {
+      "id": "Ben_Laughlin_2013",
+      "name": "Ben Laughlin",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "CSK"
+    },
+    {
+      "id": "Dirk_Nannes_2013",
+      "name": "Dirk Nannes",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "CSK"
+    },
+    {
+      "id": "Mahela_Jayawardene_2013",
+      "name": "Mahela Jayawardene",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "DC"
+    },
+    {
+      "id": "Chidhambaram_Gautam_2013",
+      "name": "Chidhambaram Gautam",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "DC"
+    },
+    {
+      "id": "Naman_Ojha_2013",
+      "name": "Naman Ojha",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "DC"
+    },
+    {
+      "id": "Bharat_Chipli_2013",
+      "name": "Bharat Chipli",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "DC"
+    },
+    {
+      "id": "David_Warner_2013",
+      "name": "David Warner",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "DC"
+    },
+    {
+      "id": "Kevin_Pietersen_2013",
+      "name": "Kevin Pietersen",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "DC"
+    },
+    {
+      "id": "Virender_Sehwag_2013",
+      "name": "Virender Sehwag",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "DC"
+    },
+    {
+      "id": "Manpreet_Juneja_2013",
+      "name": "Manpreet Juneja",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "DC"
+    },
+    {
+      "id": "Unmukt_Chand_2013",
+      "name": "Unmukt Chand",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "DC"
+    },
+    {
+      "id": "Yogesh_Nagar_2013",
+      "name": "Yogesh Nagar",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "DC"
+    },
+    {
+      "id": "Johan_Botha_2013",
+      "name": "Johan Botha",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "DC"
+    },
+    {
+      "id": "Kedar_Jadhav_2013",
+      "name": "Kedar Jadhav",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "DC"
+    },
+    {
+      "id": "Roelof_van_der_Merwe_2013",
+      "name": "Roelof van der Merwe",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "DC"
+    },
+    {
+      "id": "Ajit_Agarkar_2013",
+      "name": "Ajit Agarkar",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "DC"
+    },
+    {
+      "id": "Andre_Russell_2013",
+      "name": "Andre Russell",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "DC"
+    },
+    {
+      "id": "Irfan_Pathan_2013",
+      "name": "Irfan Pathan",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "DC"
+    },
+    {
+      "id": "Pawan_Negi_2013",
+      "name": "Pawan Negi",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "DC"
+    },
+    {
+      "id": "Jeevan_Mendis_2013",
+      "name": "Jeevan Mendis",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "DC"
+    },
+    {
+      "id": "Venugopal_Rao_2013",
+      "name": "Venugopal Rao",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "DC"
+    },
+    {
+      "id": "Morne_Morkel_2013",
+      "name": "Morne Morkel",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "DC"
+    },
+    {
+      "id": "Ashish_Nehra_2013",
+      "name": "Ashish Nehra",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "DC"
+    },
+    {
+      "id": "Shahbaz_Nadeem_2013",
+      "name": "Shahbaz Nadeem",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "DC"
+    },
+    {
+      "id": "Umesh_Yadav_2013",
+      "name": "Umesh Yadav",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "DC"
+    },
+    {
+      "id": "Varun_Aaron_2013",
+      "name": "Varun Aaron",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "DC"
+    },
+    {
+      "id": "Siddharth_Kaul_2013",
+      "name": "Siddharth Kaul",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "DC"
+    },
+    {
+      "id": "Gautam_Gambhir_2013",
+      "name": "Gautam Gambhir",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "KKR"
+    },
+    {
+      "id": "Brad_Haddin_2013",
+      "name": "Brad Haddin",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "KKR"
+    },
+    {
+      "id": "Brendon_McCullum_2013",
+      "name": "Brendon McCullum",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "KKR"
+    },
+    {
+      "id": "Manvinder_Bisla_2013",
+      "name": "Manvinder Bisla",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "KKR"
+    },
+    {
+      "id": "Debabrata_Das_2013",
+      "name": "Debabrata Das",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "KKR"
+    },
+    {
+      "id": "Eoin_Morgan_2013",
+      "name": "Eoin Morgan",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "KKR"
+    },
+    {
+      "id": "Paras_Dogra_2013",
+      "name": "Paras Dogra",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "KKR"
+    },
+    {
+      "id": "Manoj_Tiwary_2013",
+      "name": "Manoj Tiwary",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "KKR"
+    },
+    {
+      "id": "Jacques_Kallis_2013",
+      "name": "Jacques Kallis",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "KKR"
+    },
+    {
+      "id": "Ryan_ten_Doeschate_2013",
+      "name": "Ryan ten Doeschate",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "KKR"
+    },
+    {
+      "id": "Shakib_Al_Hasan_2013",
+      "name": "Shakib Al Hasan",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "KKR"
+    },
+    {
+      "id": "Sumit_Narwal_2013",
+      "name": "Sumit Narwal",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "KKR"
+    },
+    {
+      "id": "Laxmi_Ratan_Shukla_2013",
+      "name": "Laxmi Ratan Shukla",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "KKR"
+    },
+    {
+      "id": "Rajat_Bhatia_2013",
+      "name": "Rajat Bhatia",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "KKR"
+    },
+    {
+      "id": "Ryan_McLaren_2013",
+      "name": "Ryan McLaren",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "KKR"
+    },
+    {
+      "id": "Yusuf_Pathan_2013",
+      "name": "Yusuf Pathan",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "KKR"
+    },
+    {
+      "id": "Brett_Lee_2013",
+      "name": "Brett Lee",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "KKR"
+    },
+    {
+      "id": "James_Pattinson_2013",
+      "name": "James Pattinson",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "KKR"
+    },
+    {
+      "id": "Sunil_Narine_2013",
+      "name": "Sunil Narine",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "KKR"
+    },
+    {
+      "id": "Iqbal_Abdulla_2013",
+      "name": "Iqbal Abdulla",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "KKR"
+    },
+    {
+      "id": "Lakshmipathy_Balaji_2013",
+      "name": "Lakshmipathy Balaji",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "KKR"
+    },
+    {
+      "id": "Pradeep_Sangwan_2013",
+      "name": "Pradeep Sangwan",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "KKR"
+    },
+    {
+      "id": "Sarabjit_Ladda_2013",
+      "name": "Sarabjit Ladda",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "KKR"
+    },
+    {
+      "id": "Mohammad_Shami_2013",
+      "name": "Mohammad Shami",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "KKR"
+    },
+    {
+      "id": "Sachithra_Senanayake_2013",
+      "name": "Sachithra Senanayake",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "KKR"
+    },
+    {
+      "id": "Ricky_Ponting_2013",
+      "name": "Ricky Ponting",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "MI"
+    },
+    {
+      "id": "Aditya_Tare_2013",
+      "name": "Aditya Tare",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "MI"
+    },
+    {
+      "id": "Ambati_Rayudu_2013",
+      "name": "Ambati Rayudu",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "MI"
+    },
+    {
+      "id": "Dinesh_Karthik_2013",
+      "name": "Dinesh Karthik",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "MI"
+    },
+    {
+      "id": "Aiden_Blizzard_2013",
+      "name": "Aiden Blizzard",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "MI"
+    },
+    {
+      "id": "Sachin_Tendulkar_2013",
+      "name": "Sachin Tendulkar",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "MI"
+    },
+    {
+      "id": "Rohit_Sharma_2013",
+      "name": "Rohit Sharma",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "MI"
+    },
+    {
+      "id": "Surya_Kumar_Yadav_2013",
+      "name": "Surya Kumar Yadav",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "MI"
+    },
+    {
+      "id": "Rishi_Dhawan_2013",
+      "name": "Rishi Dhawan",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "MI"
+    },
+    {
+      "id": "James_Franklin_2013",
+      "name": "James Franklin",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "MI"
+    },
+    {
+      "id": "Kieron_Pollard_2013",
+      "name": "Kieron Pollard",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "MI"
+    },
+    {
+      "id": "Mitchell_Johnson_2013",
+      "name": "Mitchell Johnson",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "MI"
+    },
+    {
+      "id": "Axar_Patel_2013",
+      "name": "Axar Patel",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "MI"
+    },
+    {
+      "id": "Glenn_Maxwell_2013",
+      "name": "Glenn Maxwell",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "MI"
+    },
+    {
+      "id": "Dwayne_Smith_2013",
+      "name": "Dwayne Smith",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "MI"
+    },
+    {
+      "id": "Jacob_Oram_2013",
+      "name": "Jacob Oram",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "MI"
+    },
+    {
+      "id": "Harbhajan_Singh_2013",
+      "name": "Harbhajan Singh",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "MI"
+    },
+    {
+      "id": "Jalaj_Saxena_2013",
+      "name": "Jalaj Saxena",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "MI"
+    },
+    {
+      "id": "Nathan_CoulterNile_2013",
+      "name": "Nathan Coulter-Nile",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "MI"
+    },
+    {
+      "id": "Lasith_Malinga_2013",
+      "name": "Lasith Malinga",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "MI"
+    },
+    {
+      "id": "Abu_Nechim_2013",
+      "name": "Abu Nechim",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "MI"
+    },
+    {
+      "id": "Jasprit_Bumrah_2013",
+      "name": "Jasprit Bumrah",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "MI"
+    },
+    {
+      "id": "Dhawal_Kulkarni_2013",
+      "name": "Dhawal Kulkarni",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "MI"
+    },
+    {
+      "id": "Munaf_Patel_2013",
+      "name": "Munaf Patel",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "MI"
+    },
+    {
+      "id": "Pawan_Suyal_2013",
+      "name": "Pawan Suyal",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "MI"
+    },
+    {
+      "id": "Pragyan_Ojha_2013",
+      "name": "Pragyan Ojha",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "MI"
+    },
+    {
+      "id": "Adam_Gilchrist_2013",
+      "name": "Adam Gilchrist",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "PBKS"
+    },
+    {
+      "id": "Mandeep_Singh_2013",
+      "name": "Mandeep Singh",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "PBKS"
+    },
+    {
+      "id": "Nitin_Saini_2013",
+      "name": "Nitin Saini",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "PBKS"
+    },
+    {
+      "id": "Paul_Valthaty_2013",
+      "name": "Paul Valthaty",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "PBKS"
+    },
+    {
+      "id": "Siddharth_Chitnis_2013",
+      "name": "Siddharth Chitnis",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "PBKS"
+    },
+    {
+      "id": "Sunny_Singh_2013",
+      "name": "Sunny Singh",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "PBKS"
+    },
+    {
+      "id": "Luke_Pomersbach_2013",
+      "name": "Luke Pomersbach",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "PBKS"
+    },
+    {
+      "id": "David_Miller_2013",
+      "name": "David Miller",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "PBKS"
+    },
+    {
+      "id": "Gurkeerat_Mann_Singh_2013",
+      "name": "Gurkeerat Mann Singh",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "PBKS"
+    },
+    {
+      "id": "Manan_Vohra_2013",
+      "name": "Manan Vohra",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "PBKS"
+    },
+    {
+      "id": "Shaun_Marsh_2013",
+      "name": "Shaun Marsh",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "PBKS"
+    },
+    {
+      "id": "Azhar_Mahmood_2013",
+      "name": "Azhar Mahmood",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "PBKS"
+    },
+    {
+      "id": "Bipul_Sharma_2013",
+      "name": "Bipul Sharma",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "PBKS"
+    },
+    {
+      "id": "Harmeet_Singh_Bansal_2013",
+      "name": "Harmeet Singh Bansal",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "PBKS"
+    },
+    {
+      "id": "Michael_Neser_2013",
+      "name": "Michael Neser",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "PBKS"
+    },
+    {
+      "id": "Rajagopal_Sathish_2013",
+      "name": "Rajagopal Sathish",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "PBKS"
+    },
+    {
+      "id": "David_Hussey_2013",
+      "name": "David Hussey",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "PBKS"
+    },
+    {
+      "id": "Dimitri_Mascarenhas_2013",
+      "name": "Dimitri Mascarenhas",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "PBKS"
+    },
+    {
+      "id": "Bhargav_Bhatt_2013",
+      "name": "Bhargav Bhatt",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "PBKS"
+    },
+    {
+      "id": "Piyush_Chawla_2013",
+      "name": "Piyush Chawla",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "PBKS"
+    },
+    {
+      "id": "Praveen_Kumar_2013",
+      "name": "Praveen Kumar",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "PBKS"
+    },
+    {
+      "id": "Aniket_Choudhary_2013",
+      "name": "Aniket Choudhary",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "PBKS"
+    },
+    {
+      "id": "Sandeep_Sharma_2013",
+      "name": "Sandeep Sharma",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "PBKS"
+    },
+    {
+      "id": "Manpreet_Gony_2013",
+      "name": "Manpreet Gony",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "PBKS"
+    },
+    {
+      "id": "Parvinder_Awana_2013",
+      "name": "Parvinder Awana",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "PBKS"
+    },
+    {
+      "id": "Ryan_Harris_2013",
+      "name": "Ryan Harris",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "PBKS"
+    },
+    {
+      "id": "Sanju_Samson_2013",
+      "name": "Sanju Samson",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RR"
+    },
+    {
+      "id": "Kushal_Janith_Perera_2013",
+      "name": "Kushal Janith Perera",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RR"
+    },
+    {
+      "id": "Shreevats_Goswami_2013",
+      "name": "Shreevats Goswami",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RR"
+    },
+    {
+      "id": "Rahul_Dravid_2013",
+      "name": "Rahul Dravid",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RR"
+    },
+    {
+      "id": "Ajinkya_Rahane_2013",
+      "name": "Ajinkya Rahane",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RR"
+    },
+    {
+      "id": "Ankeet_Chavan_2013",
+      "name": "Ankeet Chavan",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RR"
+    },
+    {
+      "id": "Dishant_Yagnik_2013",
+      "name": "Dishant Yagnik",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RR"
+    },
+    {
+      "id": "Owais_Shah_2013",
+      "name": "Owais Shah",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RR"
+    },
+    {
+      "id": "Sachin_Baby_2013",
+      "name": "Sachin Baby",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RR"
+    },
+    {
+      "id": "Brad_Hodge_2013",
+      "name": "Brad Hodge",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RR"
+    },
+    {
+      "id": "James_Faulkner_2013",
+      "name": "James Faulkner",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RR"
+    },
+    {
+      "id": "Ashok_Menaria_2013",
+      "name": "Ashok Menaria",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RR"
+    },
+    {
+      "id": "Ajit_Chandila_2013",
+      "name": "Ajit Chandila",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RR"
+    },
+    {
+      "id": "Stuart_Binny_2013",
+      "name": "Stuart Binny",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RR"
+    },
+    {
+      "id": "Pravin_Tambe_2013",
+      "name": "Pravin Tambe",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RR"
+    },
+    {
+      "id": "Shane_Watson_2013",
+      "name": "Shane Watson",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RR"
+    },
+    {
+      "id": "Brad_Hogg_2013",
+      "name": "Brad Hogg",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RR"
+    },
+    {
+      "id": "Kevon_Cooper_2013",
+      "name": "Kevon Cooper",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RR"
+    },
+    {
+      "id": "Harmeet_Singh_2013",
+      "name": "Harmeet Singh",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RR"
+    },
+    {
+      "id": "Rahul_Shukla_2013",
+      "name": "Rahul Shukla",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RR"
+    },
+    {
+      "id": "Samuel_Badree_2013",
+      "name": "Samuel Badree",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RR"
+    },
+    {
+      "id": "Vikramjeet_Malik_2013",
+      "name": "Vikramjeet Malik",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RR"
+    },
+    {
+      "id": "Siddharth_Trivedi_2013",
+      "name": "Siddharth Trivedi",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RR"
+    },
+    {
+      "id": "Shanthakumaran_Sreesanth_2013",
+      "name": "Shanthakumaran Sreesanth",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RR"
+    },
+    {
+      "id": "Shaun_Tait_2013",
+      "name": "Shaun Tait",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RR"
+    },
+    {
+      "id": "Virat_Kohli_2013",
+      "name": "Virat Kohli",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RCB"
+    },
+    {
+      "id": "Sheldon_Jackson_2013",
+      "name": "Sheldon Jackson",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RCB"
+    },
+    {
+      "id": "KL_Rahul_2013",
+      "name": "KL Rahul",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RCB"
+    },
+    {
+      "id": "AB_de_Villiers_2013",
+      "name": "AB de Villiers",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RCB"
+    },
+    {
+      "id": "Abhinav_Mukund_2013",
+      "name": "Abhinav Mukund",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RCB"
+    },
+    {
+      "id": "Karun_Nair_2013",
+      "name": "Karun Nair",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RCB"
+    },
+    {
+      "id": "Arun_Karthik_2013",
+      "name": "Arun Karthik",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RCB"
+    },
+    {
+      "id": "Cheteshwar_Pujara_2013",
+      "name": "Cheteshwar Pujara",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RCB"
+    },
+    {
+      "id": "Mayank_Agarwal_2013",
+      "name": "Mayank Agarwal",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RCB"
+    },
+    {
+      "id": "Saurabh_Tiwary_2013",
+      "name": "Saurabh Tiwary",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RCB"
+    },
+    {
+      "id": "Sunny_Sohal_2013",
+      "name": "Sunny Sohal",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RCB"
+    },
+    {
+      "id": "Moises_Henriques_2013",
+      "name": "Moises Henriques",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RCB"
+    },
+    {
+      "id": "Harshal_Patel_2013",
+      "name": "Harshal Patel",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RCB"
+    },
+    {
+      "id": "Andrew_McDonald_2013",
+      "name": "Andrew McDonald",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RCB"
+    },
+    {
+      "id": "Chris_Gayle_2013",
+      "name": "Chris Gayle",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RCB"
+    },
+    {
+      "id": "Tillakaratne_Dilshan_2013",
+      "name": "Tillakaratne Dilshan",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RCB"
+    },
+    {
+      "id": "Daniel_Vettori_2013",
+      "name": "Daniel Vettori",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RCB"
+    },
+    {
+      "id": "Dan_Christian_2013",
+      "name": "Dan Christian",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RCB"
+    },
+    {
+      "id": "Sandeep_Warrier_2013",
+      "name": "Sandeep Warrier",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RCB"
+    },
+    {
+      "id": "Pankaj_Singh_2013",
+      "name": "Pankaj Singh",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RCB"
+    },
+    {
+      "id": "Ravi_Rampaul_2013",
+      "name": "Ravi Rampaul",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RCB"
+    },
+    {
+      "id": "Jaydev_Unadkat_2013",
+      "name": "Jaydev Unadkat",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RCB"
+    },
+    {
+      "id": "Abhimanyu_Mithun_2013",
+      "name": "Abhimanyu Mithun",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RCB"
+    },
+    {
+      "id": "KP_Appanna_2013",
+      "name": "KP Appanna",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RCB"
+    },
+    {
+      "id": "Syed_Mohammad_2013",
+      "name": "Syed Mohammad",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RCB"
+    },
+    {
+      "id": "Vinay_Kumar_2013",
+      "name": "Vinay Kumar",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RCB"
+    },
+    {
+      "id": "RP_Singh_2013",
+      "name": "RP Singh",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RCB"
+    },
+    {
+      "id": "Muttiah_Muralitharan_2013",
+      "name": "Muttiah Muralitharan",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RCB"
+    },
+    {
+      "id": "Murali_Kartik_2013",
+      "name": "Murali Kartik",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RCB"
+    },
+    {
+      "id": "Quinton_de_Kock_2013",
+      "name": "Quinton de Kock",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "SRH"
+    },
+    {
+      "id": "Kumar_Sangakkara_2013",
+      "name": "Kumar Sangakkara",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "SRH"
+    },
+    {
+      "id": "Parthiv_Patel_2013",
+      "name": "Parthiv Patel",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "SRH"
+    },
+    {
+      "id": "Akshath_Reddy_2013",
+      "name": "Akshath Reddy",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "SRH"
+    },
+    {
+      "id": "Hanuma_Vihari_2013",
+      "name": "Hanuma Vihari",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "SRH"
+    },
+    {
+      "id": "Thalaivan_Sargunam_2013",
+      "name": "Thalaivan Sargunam",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "SRH"
+    },
+    {
+      "id": "Dwaraka_Ravi_Teja_2013",
+      "name": "Dwaraka Ravi Teja",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "SRH"
+    },
+    {
+      "id": "Shikhar_Dhawan_2013",
+      "name": "Shikhar Dhawan",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "SRH"
+    },
+    {
+      "id": "Cameron_White_2013",
+      "name": "Cameron White",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "SRH"
+    },
+    {
+      "id": "Chris_Lynn_2013",
+      "name": "Chris Lynn",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "SRH"
+    },
+    {
+      "id": "Darren_Sammy_2013",
+      "name": "Darren Sammy",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "SRH"
+    },
+    {
+      "id": "Thisara_Perera_2013",
+      "name": "Thisara Perera",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "SRH"
+    },
+    {
+      "id": "Ankit_Sharma_2013",
+      "name": "Ankit Sharma",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "SRH"
+    },
+    {
+      "id": "JP_Duminy_2013",
+      "name": "JP Duminy",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "SRH"
+    },
+    {
+      "id": "Biplap_Samantray_2013",
+      "name": "Biplap Samantray",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "SRH"
+    },
+    {
+      "id": "Sachin_Rana_2013",
+      "name": "Sachin Rana",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "SRH"
+    },
+    {
+      "id": "Sudeep_Tyagi_2013",
+      "name": "Sudeep Tyagi",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "SRH"
+    },
+    {
+      "id": "Clint_McKay_2013",
+      "name": "Clint McKay",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "SRH"
+    },
+    {
+      "id": "Amit_Mishra_2013",
+      "name": "Amit Mishra",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "SRH"
+    },
+    {
+      "id": "Karn_Sharma_2013",
+      "name": "Karn Sharma",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "SRH"
+    },
+    {
+      "id": "Nathan_McCullum_2013",
+      "name": "Nathan McCullum",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "SRH"
+    },
+    {
+      "id": "Anand_Rajan_2013",
+      "name": "Anand Rajan",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "SRH"
+    },
+    {
+      "id": "Ashish_Reddy_2013",
+      "name": "Ashish Reddy",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "SRH"
+    },
+    {
+      "id": "Ishant_Sharma_2013",
+      "name": "Ishant Sharma",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "SRH"
+    },
+    {
+      "id": "Dale_Steyn_2013",
+      "name": "Dale Steyn",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "SRH"
+    },
+    {
+      "id": "Veer_Pratap_Singh_2013",
+      "name": "Veer Pratap Singh",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "SRH"
+    },
+    {
+      "id": "Angelo_Mathews_2013",
+      "name": "Angelo Mathews",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "PWI"
+    },
+    {
+      "id": "Yuvraj_Singh_2013",
+      "name": "Yuvraj Singh",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "PWI"
+    },
+    {
+      "id": "Steve_Smith_2013",
+      "name": "Steve Smith",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "PWI"
+    },
+    {
+      "id": "Ross_Taylor_2013",
+      "name": "Ross Taylor",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "PWI"
+    },
+    {
+      "id": "Aaron_Finch_2013",
+      "name": "Aaron Finch",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "PWI"
+    },
+    {
+      "id": "Robin_Uthappa_2013",
+      "name": "Robin Uthappa",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "PWI"
+    },
+    {
+      "id": "Bhuvneshwar_Kumar_2013",
+      "name": "Bhuvneshwar Kumar",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "PWI"
+    },
+    {
+      "id": "Ashok_Dinda_2013",
+      "name": "Ashok Dinda",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "PWI"
+    },
+    {
+      "id": "Mitchell_Marsh_2013",
+      "name": "Mitchell Marsh",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "PWI"
+    },
+    {
+      "id": "Manish_Pandey_2013",
+      "name": "Manish Pandey",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "PWI"
+    },
+    {
+      "id": "Parveez_Rasool_2013",
+      "name": "Parveez Rasool",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "PWI"
+    }
+  ]
+}

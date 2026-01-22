@@ -1,0 +1,12 @@
+TypeError: Cannot read properties of undefined (reading 'trim')
+TypeError: Cannot read properties of undefined (reading 'trim')
+    at E:\ipl-auction-app\backend\scripts\update_historical_data.js:14:33
+    at Array.forEach (<anonymous>)
+    at E:\ipl-auction-app\backend\scripts\update_historical_data.js:13:33
+    at Array.forEach (<anonymous>)
+    at Object.<anonymous> (E:\ipl-auction-app\backend\scripts\update_historical_data.js:12:31)
+    at Module._compile (node:internal/modules/cjs/loader:1358:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1416:10)
+    at Module.load (node:internal/modules/cjs/loader:1208:32)
+    at Module._load (node:internal/modules/cjs/loader:1024:12)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:174:12)

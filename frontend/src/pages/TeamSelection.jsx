@@ -10,30 +10,61 @@ const TEAM_COLORS = {
   DC: { bg: '#0078bc', text: '#fff', accent: '#0078bc' },
   PBKS: { bg: '#ed1b24', text: '#fff', accent: '#ed1b24' },
   LSG: { bg: '#00b7eb', text: '#fff', accent: '#00b7eb' },
-  GT: { bg: '#1c1c1c', text: '#fff', accent: '#00ff9d' }
+  GT: { bg: '#1c1c1c', text: '#fff', accent: '#00ff9d' },
+  // Historical
+  DD: { bg: '#00008b', text: '#fff', accent: '#dc2626' },
+  DEC: { bg: '#d1d5db', text: '#000', accent: '#1f2937' },
+  PWI: { bg: '#2dd4bf', text: '#000', accent: '#0f766e' },
+  KTK: { bg: '#9333ea', text: '#fff', accent: '#ea580c' },
+  GL: { bg: '#f97316', text: '#fff', accent: '#facc15' },
+  RPS: { bg: '#db2777', text: '#fff', accent: '#831843' }
 };
 
-// Official IPL team logos
+// Official IPL team logos (Modern + Historical Placeholders)
+// Official IPL team logos (Local files for reliability)
 const TEAM_LOGOS = {
-  CSK: 'https://documents.iplt20.com/ipl/CSK/Logos/Roundbig/CSKroundbig.png',
-  MI: 'https://documents.iplt20.com/ipl/MI/Logos/Roundbig/MIroundbig.png',
-  RCB: 'https://documents.iplt20.com/ipl/RCB/Logos/Roundbig/RCBroundbig.png',
-  KKR: 'https://documents.iplt20.com/ipl/KKR/Logos/Roundbig/KKRroundbig.png',
-  SRH: 'https://documents.iplt20.com/ipl/SRH/Logos/Roundbig/SRHroundbig.png',
-  RR: 'https://documents.iplt20.com/ipl/RR/Logos/Roundbig/RRroundbig.png',
-  DC: 'https://documents.iplt20.com/ipl/DC/Logos/Roundbig/DCroundbig.png',
-  PBKS: 'https://documents.iplt20.com/ipl/PBKS/Logos/Roundbig/PBKSroundbig.png',
-  LSG: 'https://documents.iplt20.com/ipl/LSG/Logos/Roundbig/LSGroundbig.png',
-  GT: 'https://documents.iplt20.com/ipl/GT/Logos/Roundbig/GTroundbig.png'
-};
+  // Short Codes
+  CSK: '/team-logos/CSK.png',
+  MI: '/team-logos/MI.png',
+  RCB: '/team-logos/RCB.png',
+  KKR: '/team-logos/KKR.png',
+  SRH: '/team-logos/SRH.png',
+  RR: '/team-logos/RR.png',
+  DC: '/team-logos/DC.png',
+  PBKS: '/team-logos/PBKS.png',
+  LSG: '/team-logos/LSG.png',
+  GT: '/team-logos/GT.png',
 
-const IPL_TEAMS = ["CSK", "MI", "RCB", "KKR", "SRH", "RR", "DC", "PBKS", "LSG", "GT"];
+  // Full Names (Mapping for 2025 data if it uses full names)
+  "Chennai Super Kings": '/team-logos/CSK.png',
+  "Mumbai Indians": '/team-logos/MI.png',
+  "Royal Challengers Bengaluru": '/team-logos/RCB.png',
+  "Royal Challengers Bangalore": '/team-logos/RCB.png',
+  "Kolkata Knight Riders": '/team-logos/KKR.png',
+  "Sunrisers Hyderabad": '/team-logos/SRH.png',
+  "Rajasthan Royals": '/team-logos/RR.png',
+  "Delhi Capitals": '/team-logos/DC.png',
+  "Punjab Kings": '/team-logos/PBKS.png',
+  "Lucknow Super Giants": '/team-logos/LSG.png',
+  "Gujarat Titans": '/team-logos/GT.png',
+
+  // Historical
+  DD: '/team-logos/DD.png',
+  DEC: '/team-logos/DEC.png',
+  PWI: '/team-logos/PWI.png',
+  KTK: '/team-logos/KTK.png',
+  GL: '/team-logos/GL.png',
+  RPS: '/team-logos/RPS.png'
+};
 
 export default function TeamSelection({ room }) {
   const mySocketId = socket.id;
   const me = room.humans?.find(h => h.socketId === mySocketId);
   const myTeam = me?.team || null;
   const isHost = room.hostSocketId === mySocketId;
+
+  // Use teams from the room configuration
+  const currentTeams = room.teams.map(t => t.name); // Dynamic team list
 
   const takenTeams = {};
   room.humans?.forEach(h => {
@@ -139,7 +170,7 @@ export default function TeamSelection({ room }) {
                 }}
               >
                 {human.username}
-                {human.team && (
+                {human.team && TEAM_COLORS[human.team] && (
                   <span style={{
                     background: TEAM_COLORS[human.team].bg,
                     color: TEAM_COLORS[human.team].text,
@@ -164,8 +195,8 @@ export default function TeamSelection({ room }) {
           marginBottom: 24
         }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 24 }}>
-            {IPL_TEAMS.map((team, idx) => {
-              const colors = TEAM_COLORS[team];
+            {currentTeams.map((team, idx) => {
+              const colors = TEAM_COLORS[team] || TEAM_COLORS[team.toUpperCase()] || { bg: '#333', text: '#fff', accent: '#ccc' }; // Fallback
               const isMine = myTeam === team;
               const takenBy = takenTeams[team];
               const isTakenByOther = takenBy && !isMine;
@@ -291,7 +322,13 @@ export default function TeamSelection({ room }) {
                 Once all players have joined and selected teams, start the auction.
               </p>
               <button
-                onClick={lockTeams}
+                onClick={() => {
+                  if (!myTeam) {
+                    alert("You must select a team before starting the auction!");
+                    return;
+                  }
+                  lockTeams();
+                }}
                 style={{
                   padding: '16px 48px',
                   background: 'linear-gradient(135deg, #059669, #10b981)',

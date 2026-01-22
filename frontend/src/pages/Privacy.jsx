@@ -31,7 +31,7 @@ export default function Privacy() {
             {/* Main Content */}
             <main style={{ maxWidth: 900, margin: '0 auto', padding: '60px 24px' }}>
                 <h1 style={{ fontSize: 48, marginBottom: 16, color: '#60a5fa' }}>Privacy Policy</h1>
-                <p style={{ color: '#9ca3af', marginBottom: 40 }}>Last updated: January 2024</p>
+                <p style={{ color: '#9ca3af', marginBottom: 40 }}>Last updated: January 2026</p>
 
                 <section style={{ marginBottom: 40 }}>
                     <p style={{ fontSize: 16, lineHeight: 1.8, color: '#d1d5db' }}>
@@ -184,7 +184,7 @@ export default function Privacy() {
                     <a href="/terms" style={{ color: '#9ca3af', margin: '0 12px', textDecoration: 'none' }}>Terms of Service</a>
                     <a href="/contact" style={{ color: '#9ca3af', margin: '0 12px', textDecoration: 'none' }}>Contact</a>
                 </div>
-                <p>© 2024 IPL Mock Auction. Created by Surendhar. All rights reserved.</p>
+                <p>© 2026 IPL Mock Auction. Created by Surendhar. All rights reserved.</p>
             </footer>
         </div>
     );

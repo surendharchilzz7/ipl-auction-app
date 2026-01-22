@@ -8,16 +8,41 @@ export default function Contact() {
         message: ''
     });
     const [submitted, setSubmitted] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // In a real app, you'd send this to a backend
-        console.log('Contact form submitted:', formData);
-        setSubmitted(true);
+        setLoading(true);
+        setError('');
+
+        try {
+            const VITE_API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+            const response = await fetch(`${VITE_API_URL}/api/contact`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                setSubmitted(true);
+            } else {
+                setError(data.error || 'Failed to send message');
+            }
+        } catch (err) {
+            console.error('Contact error:', err);
+            setError('Failed to connect to server. Please try again later.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -194,20 +219,43 @@ export default function Contact() {
 
                                 <button
                                     type="submit"
+                                    disabled={loading}
                                     style={{
                                         width: '100%',
                                         padding: '14px 24px',
-                                        background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+                                        background: loading ? 'rgba(59, 130, 246, 0.5)' : 'linear-gradient(135deg, #3b82f6, #2563eb)',
                                         border: 'none',
                                         borderRadius: 10,
                                         color: '#fff',
                                         fontSize: 16,
                                         fontWeight: 'bold',
-                                        cursor: 'pointer'
+                                        cursor: loading ? 'not-allowed' : 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: 8
                                     }}
                                 >
-                                    📧 Send Message
+                                    {loading ? (
+                                        <><span>⏳</span> Sending...</>
+                                    ) : (
+                                        <><span>📧</span> Send Message</>
+                                    )}
                                 </button>
+                                {error && (
+                                    <div style={{
+                                        marginTop: 16,
+                                        padding: 12,
+                                        background: 'rgba(239, 68, 68, 0.1)',
+                                        border: '1px solid rgba(239, 68, 68, 0.3)',
+                                        borderRadius: 8,
+                                        color: '#f87171',
+                                        fontSize: 14,
+                                        textAlign: 'center'
+                                    }}>
+                                        {error}
+                                    </div>
+                                )}
                             </form>
                         )}
                     </div>
@@ -314,7 +362,7 @@ export default function Contact() {
                     <a href="/terms" style={{ color: '#9ca3af', margin: '0 12px', textDecoration: 'none' }}>Terms of Service</a>
                     <a href="/contact" style={{ color: '#9ca3af', margin: '0 12px', textDecoration: 'none' }}>Contact</a>
                 </div>
-                <p>© 2024 IPL Mock Auction. Created by Surendhar. All rights reserved.</p>
+                <p>© 2026 IPL Mock Auction. Created by Surendhar. All rights reserved.</p>
             </footer>
         </div>
     );

@@ -21,6 +21,74 @@ app.get("/health", (req, res) => {
 const server = http.createServer(app);
 require("./socket")(server);
 
+// --- Contact Us Backend ---
+const fs = require('fs');
+const path = require('path');
+const MESSAGES_FILE = path.join(__dirname, 'data', 'messages.json');
+
+// Ensure data directory exists
+if (!fs.existsSync(path.join(__dirname, 'data'))) {
+  fs.mkdirSync(path.join(__dirname, 'data'));
+}
+
+// POST /api/contact - Save message
+app.post('/api/contact', (req, res) => {
+  try {
+    const { name, email, subject, message } = req.body;
+
+    if (!name || !email || !message) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    const newMessage = {
+      id: Date.now().toString(),
+      timestamp: new Date().toISOString(),
+      name,
+      email,
+      subject: subject || 'General',
+      message
+    };
+
+    // 1. Log to Console (Reliable on Render)
+    console.log('\n--- NEW CONTACT MESSAGE ---');
+    console.log(`From: ${name} <${email}>`);
+    console.log(`Subject: ${subject}`);
+    console.log(`Message: ${message}`);
+    console.log('---------------------------\n');
+
+    // 2. Save to File (Best effort storage)
+    let messages = [];
+    if (fs.existsSync(MESSAGES_FILE)) {
+      try {
+        messages = JSON.parse(fs.readFileSync(MESSAGES_FILE, 'utf8'));
+      } catch (e) { console.error("Error reading messages file:", e); }
+    }
+    messages.push(newMessage);
+    fs.writeFileSync(MESSAGES_FILE, JSON.stringify(messages, null, 2));
+
+    res.json({ success: true, message: 'Message received' });
+  } catch (error) {
+    console.error('Contact API Error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/messages - Admin view (Simple protection via query param)
+app.get('/api/messages', (req, res) => {
+  const { key } = req.query;
+  // Simple "password" query param: ?key=admin123
+  if (key !== 'admin123') {
+    return res.status(403).json({ error: 'Unauthorized' });
+  }
+
+  if (fs.existsSync(MESSAGES_FILE)) {
+    const data = fs.readFileSync(MESSAGES_FILE, 'utf8');
+    res.json(JSON.parse(data));
+  } else {
+    res.json([]);
+  }
+});
+
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`🚀 Backend running on port ${PORT}`);

@@ -14,6 +14,7 @@ const { smartAIBid, calculateAIMaxBid } = require("./aiBidEngine");
 const { generateAuctionSummary } = require("./auctionSummary");
 const { checkRTMEligibility, consumeRTMCard } = require("./retentionEngine");
 const serializeRoom = require("../utils/serializeRoom");
+const { incrementAuctionsEnded, getStats } = require("../utils/statsManager");
 
 // FSM States
 const STATES = {
@@ -342,6 +343,10 @@ function finalizePlayer(room, io) {
         // Generate summary
         room.summary = generateAuctionSummary(room);
 
+        // Increment auctions ended counter and broadcast to all clients
+        const stats = incrementAuctionsEnded();
+        if (io) io.emit("stats-update", stats);
+
         // Emit update
         if (io) io.to(room.id).emit("room-update", serializeRoom(room));
         return; // Stop further processing
@@ -417,6 +422,10 @@ function advancePlayer(room, io) {
     // Generate auction summary
     room.summary = generateAuctionSummary(room);
     console.log("[Summary] Generated auction summary:", room.summary.bestTeam?.name);
+
+    // Increment auctions ended counter and broadcast to all clients
+    const stats = incrementAuctionsEnded();
+    io.emit("stats-update", stats);
 
     // Emit final update
     io.to(room.id).emit("room-update", serializeRoom(room));

@@ -31,6 +31,17 @@ const {
   autoFinalizeRetention
 } = require("./engines/retentionEngine");
 
+const {
+  getStats,
+  incrementAuctionsStarted,
+  incrementAuctionsEnded,
+  incrementTotalViews,
+  initStats
+} = require("./utils/statsManager");
+
+// Initialize stats on server start
+initStats();
+
 module.exports = server => {
   const io = require("socket.io")(server, {
     cors: { origin: "*" },
@@ -40,6 +51,15 @@ module.exports = server => {
 
   io.on("connection", socket => {
     console.log(`[Socket] Client connected: ${socket.id}`);
+
+    // Increment total views and broadcast to all clients
+    const updatedStats = incrementTotalViews();
+    io.emit("stats-update", updatedStats);
+
+    // Handle stats request
+    socket.on("get-stats", () => {
+      socket.emit("stats-update", getStats());
+    });
 
     // Create a new room
     socket.on("create-room", ({ username, config }) => {
@@ -192,6 +212,11 @@ module.exports = server => {
       applyPoolFilters(room);
       room.state = "AUCTION_RUNNING";
       console.log(`[Auction] Started in room ${roomId} with ${room.auctionPool.length} players`);
+
+      // Increment and broadcast auction counter to ALL connected clients
+      const stats = incrementAuctionsStarted();
+      io.emit("stats-update", stats); // Broadcast to all, not just room
+
       io.to(roomId).emit("room-update", serializeRoom(room));
       startTimer(room, io);
     }
@@ -404,6 +429,10 @@ module.exports = server => {
         console.log("[end-auction] Generating summary...");
         room.summary = generateAuctionSummary(room);
         console.log("[end-auction] Summary generated. Best team:", room.summary?.bestTeam?.name);
+
+        // Increment auctions ended counter and broadcast to all clients
+        const stats = incrementAuctionsEnded();
+        io.emit("stats-update", stats);
 
         // Emit final update
         console.log("[end-auction] Emitting room-update...");

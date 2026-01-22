@@ -1,13 +1,43 @@
+const fs = require('fs');
+const path = require('path');
 const data2025 = require("./data/reference/players_2025.json");
 const season2025 = require("./data/seasons/2025.json");
 const rules = require("./data/rules/auctionRules.json");
 
+const { getAugmentedData } = require("./data/historicalAugmentation");
+
 const rooms = {};
 const roomCleanupTimers = {}; // Track cleanup timers for empty rooms
-const IPL_TEAMS = Object.keys(season2025.teams || season2025);
+const IPL_TEAMS = Array.isArray(season2025.teams) ? season2025.teams : Object.keys(season2025.teams || season2025);
 
 // Fallback if teams object is empty
 const DEFAULT_TEAMS = ["CSK", "MI", "RCB", "KKR", "SRH", "RR", "DC", "PBKS", "LSG", "GT"];
+
+// Helper to map full names to codes
+function getTeamCode(fullName) {
+  const map = {
+    "Chennai Super Kings": "CSK",
+    "Mumbai Indians": "MI",
+    "Royal Challengers Bengaluru": "RCB",
+    "Royal Challengers Bangalore": "RCB",
+    "Kolkata Knight Riders": "KKR",
+    "Sunrisers Hyderabad": "SRH",
+    "Rajasthan Royals": "RR",
+    "Delhi Capitals": "DC",
+    "Delhi Daredevils": "DD",
+    "Punjab Kings": "PBKS",
+    "Kings XI Punjab": "KXIP",
+    "Lucknow Super Giants": "LSG",
+    "Gujarat Titans": "GT",
+    "Deccan Chargers": "DEC",
+    "Pune Warriors": "PWI",
+    "Kochi Tuskers Kerala": "KTK",
+    "Gujarat Lions": "GL",
+    "Rising Pune Supergiant": "RPS",
+    "Rising Pune Supergiants": "RPS"
+  };
+  return map[fullName] || fullName; // Fallback to full name if no code found (might break UI but better than null)
+}
 
 function splitPlayers(players) {
   const soldByTeam = {};
@@ -18,12 +48,15 @@ function splitPlayers(players) {
     // Create a fresh copy of the player object
     const playerCopy = { ...p, retained: false, sold: p.sold, soldTo: null, soldPrice: null };
 
-    // Check both 'team' and 'soldTo' fields - some players have one or the other
-    const teamName = p.team || p.soldTo;
+    // Use originalTeam for auction preparation - this identifies players from the previous season
+    // who are eligible for retention/RTM. For 2025, players have originalTeam set from 2024 squads.
+    const teamForRetention = p.originalTeam || p.team || p.soldTo;
 
-    if (p.sold && teamName) {
-      if (!soldByTeam[teamName]) soldByTeam[teamName] = [];
-      soldByTeam[teamName].push(playerCopy);
+    // If player was on a team in the previous season (originalTeam), add to soldByTeam for retention eligibility
+    // Also handle legacy sold players (p.sold && teamName)
+    if (teamForRetention) {
+      if (!soldByTeam[teamForRetention]) soldByTeam[teamForRetention] = [];
+      soldByTeam[teamForRetention].push(playerCopy);
     } else {
       unsold.push(playerCopy);
     }
@@ -32,29 +65,195 @@ function splitPlayers(players) {
   return { soldByTeam, unsold };
 }
 
+
 function createRoom(username, socketId, config = {}) {
   const id = Math.random().toString(36).substring(2, 8);
-  // Each room gets a FRESH copy of all players
-  const { soldByTeam, unsold } = splitPlayers(data2025.players || []);
 
-  // Use default teams if IPL_TEAMS is empty
-  const teamsToUse = IPL_TEAMS.length > 0 ? IPL_TEAMS : DEFAULT_TEAMS;
+  // DETERMINE SEASON AND LOAD DATA
+  const seasonYear = config.season || 2025;
+  let seasonData = null;
+  let seasonTeams = DEFAULT_TEAMS;
+  let seasonPlayers = data2025.players || [];
+
+  try {
+    if (seasonYear != 2025) {
+      const seasonPath = path.join(__dirname, 'data/seasons', `${seasonYear}.json`);
+      if (fs.existsSync(seasonPath)) {
+        seasonData = JSON.parse(fs.readFileSync(seasonPath, 'utf8'));
+        if (seasonData.teams && seasonData.teams.length > 0) {
+          seasonTeams = seasonData.teams;
+        }
+        if (seasonData.players && seasonData.players.length > 0) {
+          seasonPlayers = seasonData.players.map(p => {
+            const augmented = getAugmentedData(p.name);
+            return {
+              ...p,
+              // Polyfill missing fields via Lookup or defaults
+              role: augmented?.role || p.set || "BAT",
+              overseas: augmented?.overseas ?? (p.overseas || false),
+
+              // For historical auctions, we want players to be available for bidding
+              team: null,
+              sold: false,
+              // Keep originalTeam for reference/display, ensure it exists
+              originalTeam: p.originalTeam
+            };
+          });
+        }
+      }
+    } else {
+      // 2025 Default Logic (uses imports at top)
+      seasonTeams = IPL_TEAMS.length > 0 ? IPL_TEAMS : DEFAULT_TEAMS;
+
+      // Explicitly inject 2024 retention data for 2025 players here if not present
+      // Because data2025.json usually has null originalTeam
+      const iplt20Master = require("./data/iplt20_master_data.json");
+      if (iplt20Master['2024']) {
+        try {
+          const prevSquads = iplt20Master['2024'];
+          console.log("[CreateRoom] Injecting 2024 retention data into 2025 players...");
+          let seasonPlayersMap = new Map();
+          seasonPlayers.forEach(p => seasonPlayersMap.set(p.name.trim().toLowerCase(), p));
+
+          // 1. Map existing players to 2024 teams & RESET State
+          seasonPlayers = seasonPlayers.map(p => {
+            if (!p || !p.name) return p;
+            let prevDetails = prevSquads[p.name] || prevSquads[p.name.trim()];
+
+            // RESET Player (Force Unsold)
+            const resetPlayer = {
+              ...p,
+              sold: false,
+              team: null,
+              soldTo: null,
+              retained: false
+            };
+
+            if (prevDetails && prevDetails.team) {
+              return { ...resetPlayer, originalTeam: getTeamCode(prevDetails.team) };
+            }
+            return { ...resetPlayer, originalTeam: null };
+          });
+
+          // 2. FIND MISSING STARS: Iterate 2024 retention list and ADD players not in 2025 pool
+          Object.keys(prevSquads).forEach(playerName => {
+            const pData = prevSquads[playerName];
+            const exists = seasonPlayersMap.has(playerName.trim().toLowerCase());
+
+            if (!exists && pData.team) {
+              // console.log(`[CreateRoom] Missing 2024 Player Found: ${playerName} (${pData.team}). Injecting to pool.`);
+              seasonPlayers.push({
+                id: `${playerName.replace(/\s+/g, '_')}_2025_INJECTED`,
+                name: playerName,
+                role: pData.role || "BAT",
+                basePrice: 2, // Default base price for retained stars
+                originalTeam: getTeamCode(pData.team),
+                sold: false,
+                team: null,
+                soldTo: null,
+                overseas: pData.overseas || false,
+                set: "RETENTION_ADDON"
+              });
+            }
+          });
+
+          console.log(`[CreateRoom] Retention Injection Complete. Total Players: ${seasonPlayers.length}`);
+        } catch (err) {
+          console.error("[CreateRoom] Error injecting retention data:", err);
+        }
+      }
+    }
+
+    // --- RETENTION LOGIC: POPULATE ORIGINAL TEAMS ---
+    // IMPORTANT: Preserve originalTeam if already set in JSON (for historical seasons)
+    // Only use master data lookup as FALLBACK when originalTeam is null/undefined
+    const iplt20Master = require("./data/iplt20_master_data.json");
+    const prevYear = seasonYear - 1;
+
+    // SPECIAL CASE: 2018 - CSK and RR returned after 2-year suspension (2016-2017)
+    // Their players need to look at 2015 data for retention eligibility
+    const suspendedTeamsFallbackYear = 2015;
+    const suspendedTeamsIn2018 = ['Chennai Super Kings', 'Rajasthan Royals', 'CSK', 'RR'];
+
+    if (seasonYear > 2008 && iplt20Master[prevYear]) {
+      console.log(`[CreateRoom] Processing retention for ${seasonYear}...`);
+      const prevSquads = iplt20Master[prevYear];
+
+      // For 2018, also load 2015 data for CSK/RR players
+      const fallbackSquads = (seasonYear === 2018 && iplt20Master[suspendedTeamsFallbackYear])
+        ? iplt20Master[suspendedTeamsFallbackYear]
+        : null;
+
+      seasonPlayers = seasonPlayers.map(p => {
+        // PRIORITY 1: If originalTeam is already set in JSON, PRESERVE it
+        // This handles pre-configured historical data including defunct teams
+        if (p.originalTeam) {
+          return p; // Keep existing originalTeam
+        }
+
+        // PRIORITY 2: Look up in previous year's master data
+        let prevDetails = prevSquads[p.name];
+        if (prevDetails && prevDetails.team) {
+          const teamCode = getTeamCode(prevDetails.team);
+          return { ...p, originalTeam: teamCode };
+        }
+
+        // PRIORITY 3 (2018 only): Check 2015 data for CSK/RR players
+        if (seasonYear === 2018 && fallbackSquads) {
+          const fallbackDetails = fallbackSquads[p.name];
+          if (fallbackDetails && fallbackDetails.team) {
+            const fallbackTeamCode = getTeamCode(fallbackDetails.team);
+            if (suspendedTeamsIn2018.includes(fallbackDetails.team) ||
+              suspendedTeamsIn2018.includes(fallbackTeamCode)) {
+              console.log(`[CreateRoom] 2018 fallback: ${p.name} -> ${fallbackTeamCode} (from 2015)`);
+              return { ...p, originalTeam: fallbackTeamCode };
+            }
+          }
+        }
+
+        // Not found in any source - not retainable
+        return { ...p, originalTeam: null };
+      });
+    } else if (seasonYear === 2008) {
+      // 2008: No retention possible (first IPL season)
+      seasonPlayers = seasonPlayers.map(p => ({ ...p, originalTeam: null }));
+    }
+    // If no master data for prevYear exists, preserve whatever originalTeam is in JSON
+    // -------------------------------------------------------
+
+  } catch (e) {
+    console.error(`[CreateRoom] Failed to load season ${seasonYear}:`, e);
+    // Fallback to defaults
+  }
+
+  // Each room gets a FRESH copy of players
+  const { soldByTeam, unsold } = splitPlayers(seasonPlayers);
+
+  // Use loaded teams
+  const teamsToUse = seasonTeams;
 
   // Validate and set budget (120-200 in steps of 10)
   let budget = parseInt(config.budget) || rules.purse || 120;
   budget = Math.max(120, Math.min(200, budget)); // Clamp to 120-200
   budget = Math.round(budget / 10) * 10; // Round to nearest 10
 
+  // Disable retention for historical seasons (2008-2010 usually, or just if user requested logic)
+  // Logic: 2008 definitely had no retention (first season)
+  let retentionEnabled = !!config.retentionEnabled;
+  if (seasonYear == 2008) {
+    retentionEnabled = false;
+  }
+
   const room = {
     id,
     hostSocketId: socketId,
-    season: season2025.season,
-    seasonSquads: season2025.teams || {},
+    season: seasonData ? seasonData.season : season2025.season,
+    seasonSquads: seasonData ? (seasonData.teams || {}) : (season2025.teams || {}),
     rules: { ...rules, purse: budget }, // Override purse with selected budget
 
     config: {
       allowAI: !!config.allowAI,
-      retentionEnabled: !!config.retentionEnabled,
+      retentionEnabled: retentionEnabled,
       budget: budget // Store budget in config for reference
     },
 
@@ -79,6 +278,12 @@ function createRoom(username, socketId, config = {}) {
     retainedPlayers: {},
 
     auctionPool: [],
+    auctionSets: unsold.reduce((acc, p) => {
+      const set = p.role || p.set || "BAT"; // Use role as priority set now
+      if (!acc[set]) acc[set] = [];
+      acc[set].push(p);
+      return acc;
+    }, {}),
     currentIndex: 0,
     currentPlayer: null,
     currentBid: null,

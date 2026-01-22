@@ -131,16 +131,43 @@ export default function HowToPlay() {
                         <span>4️⃣</span> Retention Phase
                     </h2>
                     <p style={{ fontSize: 16, lineHeight: 1.8, color: '#d1d5db', marginBottom: 16 }}>
-                        If retention mode is enabled, each team can choose to retain up to 6 players from the previous season's squad before the main auction begins. Retained players have preset prices deducted from your budget.
+                        If retention mode is enabled, each team can choose to retain players from the previous season's squad before the main auction begins. Retained players have prices deducted from your budget based on IPL rules for that specific season.
                     </p>
-                    <h3 style={{ fontSize: 18, color: '#fff', marginBottom: 12 }}>Retention Rules:</h3>
+                    <h3 style={{ fontSize: 18, color: '#fff', marginBottom: 12 }}>Retention Rules (2025):</h3>
                     <ul style={{ paddingLeft: 24, lineHeight: 2, color: '#d1d5db' }}>
                         <li>Maximum 6 retentions per team</li>
                         <li>Retention 1: ₹18 Cr</li>
                         <li>Retention 2: ₹14 Cr</li>
                         <li>Retention 3: ₹11 Cr</li>
-                        <li>Retentions 4-6: ₹4-14 Cr (based on uncapped status)</li>
+                        <li>Retentions 4-5: ₹18 Cr / ₹14 Cr</li>
+                        <li>Reference 2025 IPL rules for specific uncapped player costs</li>
                         <li>You also receive RTM (Right to Match) cards for retained players</li>
+                    </ul>
+                    <div style={{
+                        background: 'rgba(59, 130, 246, 0.1)',
+                        border: '1px solid rgba(59, 130, 246, 0.3)',
+                        borderRadius: 12,
+                        padding: 16,
+                        marginTop: 16
+                    }}>
+                        <p style={{ color: '#60a5fa', margin: 0 }}>
+                            📅 <strong>Historical Seasons:</strong> For older seasons (e.g., 2018), retention rules adapt to match that year's regulations (including special handling for returning teams like CSK/RR).
+                        </p>
+                    </div>
+                </section>
+
+                {/* Section 4.5 - Historical Auctions */}
+                <section id="historical" style={{ marginBottom: 48 }}>
+                    <h2 style={{ fontSize: 28, marginBottom: 16, color: '#f59e0b', display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <span>⏳</span> Historical Auctions
+                    </h2>
+                    <p style={{ fontSize: 16, lineHeight: 1.8, color: '#d1d5db', marginBottom: 16 }}>
+                        Travel back in time! You can choose any season from 2008 to 2025.
+                    </p>
+                    <ul style={{ paddingLeft: 24, lineHeight: 2, color: '#d1d5db' }}>
+                        <li><strong style={{ color: '#fff' }}>Defunct Teams:</strong> Play as iconic past teams like Deccan Chargers, Pune Warriors, or Gujarat Lions in their respective years.</li>
+                        <li><strong style={{ color: '#fff' }}>Classic Rosters:</strong> Auction pools contain the exact players available in that year's real auction.</li>
+                        <li><strong style={{ color: '#fff' }}>Authentic Rules:</strong> Experience the evolution of IPL auction rules and budget caps.</li>
                     </ul>
                 </section>
 
@@ -354,7 +381,7 @@ export default function HowToPlay() {
                     <a href="/terms" style={{ color: '#9ca3af', margin: '0 12px', textDecoration: 'none' }}>Terms of Service</a>
                     <a href="/contact" style={{ color: '#9ca3af', margin: '0 12px', textDecoration: 'none' }}>Contact</a>
                 </div>
-                <p>© 2024 IPL Mock Auction. Created by Surendhar. All rights reserved.</p>
+                <p>© 2026 IPL Mock Auction. Created by Surendhar. All rights reserved.</p>
             </footer>
         </div>
     );

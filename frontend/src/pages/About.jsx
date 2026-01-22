@@ -131,7 +131,7 @@ export default function About() {
                     <a href="/terms" style={{ color: '#9ca3af', margin: '0 12px', textDecoration: 'none' }}>Terms of Service</a>
                     <a href="/contact" style={{ color: '#9ca3af', margin: '0 12px', textDecoration: 'none' }}>Contact</a>
                 </div>
-                <p>© 2024 IPL Mock Auction. Created by Surendhar. All rights reserved.</p>
+                <p>© 2026 IPL Mock Auction. Created by Surendhar. All rights reserved.</p>
                 <p style={{ fontSize: 12, marginTop: 8 }}>
                     Disclaimer: This is a fan-made simulation. Not affiliated with IPL, BCCI, or any official cricket organization.
                 </p>
