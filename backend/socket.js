@@ -130,9 +130,16 @@ module.exports = server => {
           console.log("[lock-teams] Room not found:", roomId);
           return;
         }
+        // Resilient host check
         if (socket.id !== room.hostSocketId) {
-          console.log("[lock-teams] Not host, rejecting");
-          return;
+          const human = room.humans?.find(h => h.socketId === socket.id);
+          const originalHost = room.humans?.[0];
+          if (human && originalHost && human.username === originalHost.username) {
+            room.hostSocketId = socket.id;
+          } else {
+            console.log("[lock-teams] Not host, rejecting");
+            return;
+          }
         }
 
         buildTeamsFromHumans(room);
@@ -143,7 +150,7 @@ module.exports = server => {
           room.state = "RETENTION";
           io.to(roomId).emit("room-update", serializeRoom(room));
 
-          // Auto-finalize retentions after 30 seconds, then go to POOL_FILTER
+          // Auto-finalize retentions after 3 minutes, then go to POOL_FILTER
           setTimeout(() => {
             try {
               autoFinalizeRetention(room);
@@ -153,7 +160,7 @@ module.exports = server => {
             } catch (err) {
               console.error("[lock-teams:retention] Error:", err);
             }
-          }, 30000);
+          }, 180000);
         } else {
           // No retention mode - RTM is also disabled
           // Set RTM cards to 0 for all teams
@@ -176,7 +183,14 @@ module.exports = server => {
       try {
         const room = rooms[roomId];
         if (!room || room.state !== "POOL_FILTER") return;
-        if (socket.id !== room.hostSocketId) return;
+        // Resilient host check
+        if (socket.id !== room.hostSocketId) {
+          const human = room.humans?.find(h => h.socketId === socket.id);
+          const originalHost = room.humans?.[0];
+          if (human && originalHost && human.username === originalHost.username) {
+            room.hostSocketId = socket.id;
+          } else return;
+        }
 
         // Apply filters
         room.poolFilters = filters;
@@ -194,7 +208,14 @@ module.exports = server => {
       try {
         const room = rooms[roomId];
         if (!room || room.state !== "POOL_FILTER") return;
-        if (socket.id !== room.hostSocketId) return;
+        // Resilient host check
+        if (socket.id !== room.hostSocketId) {
+          const human = room.humans?.find(h => h.socketId === socket.id);
+          const originalHost = room.humans?.[0];
+          if (human && originalHost && human.username === originalHost.username) {
+            room.hostSocketId = socket.id;
+          } else return;
+        }
 
         console.log(`[Pool] Skipping filter, using all players`);
         room.poolFilters = null;
@@ -391,8 +412,20 @@ module.exports = server => {
           return;
         }
 
-        // Only host can end auction
-        if (socket.id !== room.hostSocketId) {
+        // Only host can end auction — resilient check
+        let isHost = (socket.id === room.hostSocketId);
+        if (!isHost) {
+          // Check if this socket belongs to the original host (first human) by socketId match
+          const human = room.humans?.find(h => h.socketId === socket.id);
+          const originalHost = room.humans?.[0];
+          if (human && originalHost && human.username === originalHost.username) {
+            // This IS the host, just with a stale hostSocketId — fix it
+            room.hostSocketId = socket.id;
+            isHost = true;
+            console.log("[end-auction] Fixed stale hostSocketId for", human.username);
+          }
+        }
+        if (!isHost) {
           console.log("[end-auction] Not host. socket.id:", socket.id, "host:", room.hostSocketId);
           return;
         }

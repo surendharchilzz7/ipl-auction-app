@@ -11,15 +11,17 @@
 const MIN_SQUAD = 18;
 const MAX_SQUAD = 25;
 
-// List of top players who should command high prices
+// Star players that should be priced realistically when auto-filled
 const TOP_PLAYERS = [
-  "Virat Kohli", "MS Dhoni", "Rohit Sharma", "Jasprit Bumrah",
-  "Hardik Pandya", "Ravindra Jadeja", "Suryakumar Yadav", "Rishabh Pant",
-  "Sanju Samson", "KL Rahul", "Shubman Gill", "Shreyas Iyer",
-  "Pat Cummins", "Mitchell Starc", "Travis Head", "Heinrich Klaasen",
-  "Rashid Khan", "Andre Russell", "Sunil Narine", "Nicholas Pooran",
-  "Jos Buttler", "Yashasvi Jaiswal", "Ruturaj Gaikwad", "Axar Patel",
-  "Kuldeep Yadav", "Mohammed Shami", "Mohammed Siraj", "Arshdeep Singh"
+  "Virat Kohli", "Rohit Sharma", "MS Dhoni", "Jasprit Bumrah",
+  "Ravindra Jadeja", "Suryakumar Yadav", "KL Rahul", "Rishabh Pant",
+  "Hardik Pandya", "Rashid Khan", "Shreyas Iyer", "Shubman Gill",
+  "Ruturaj Gaikwad", "Sanju Samson", "Yashasvi Jaiswal",
+  "Pat Cummins", "Mitchell Starc", "Kagiso Rabada",
+  "Yuzvendra Chahal", "Ravichandran Ashwin",
+  "Sunil Narine", "Andre Russell", "David Warner",
+  "Glenn Maxwell", "Jos Buttler", "Nicholas Pooran",
+  "Faf du Plessis", "AB de Villiers"
 ];
 
 // Target role distribution for balanced squad
@@ -103,11 +105,10 @@ function calculateAutoFillPrice(player, team, slotsToFill, roomBudget = 120, isO
   // Base valuation based on player status
   if (TOP_PLAYERS.includes(player.name)) {
     // Top players: 30-40% of TOTAL room budget
-    // We do NOT apply wealthMultiplier here effectively, as these prices are already ceiling
     const roomScale = roomBudget * 0.35;
     const teamScale = remainingBudget * 0.40;
 
-    // Use a much milder multiplier for stars (max 1.2x) to show "rich team tax" but not insanity
+    // Use a much milder multiplier for stars (max 1.2x)
     const starMultiplier = 1.0 + ((wealthMultiplier - 1.0) * 0.2);
 
     desiredPrice = Math.min(teamScale, roomScale) * starMultiplier;
@@ -121,7 +122,7 @@ function calculateAutoFillPrice(player, team, slotsToFill, roomBudget = 120, isO
     // Mid players: 1-3 Cr + wealth bonus
     desiredPrice = (1 + (Math.random() * 2)) * wealthMultiplier;
   } else {
-    // Uncapped / Low base: 
+    // Uncapped / Low base:
     if (wealthMultiplier > 1.5) desiredPrice = 0.5 + Math.random();
     else desiredPrice = basePrice + (Math.random() * 0.2);
   }
@@ -194,7 +195,7 @@ function autoFillTeams(room) {
     }
   });
 
-  // CRITICAL: Sort pool to prioritize TOP_PLAYERS so they are definitely picked
+  // Sort pool to prioritize TOP_PLAYERS so they are definitely picked
   pool.sort((a, b) => {
     const isTopA = TOP_PLAYERS.includes(a.name);
     const isTopB = TOP_PLAYERS.includes(b.name);

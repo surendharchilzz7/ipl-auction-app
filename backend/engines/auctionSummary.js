@@ -155,7 +155,7 @@ function generateAuctionSummary(room) {
 
     const bestTeam = rankedTeams[0];
 
-    // Separate retained players and RTM purchases
+    // Separate retained players and RTM purchases from auction buys (includes auto-filled)
     const auctionBuys = allPlayers.filter(p => !p.retained && !p.rtmUsed);
     const retainedAndRTM = allPlayers.filter(p => p.retained || p.rtmUsed);
 

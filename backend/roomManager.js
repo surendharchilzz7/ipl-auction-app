@@ -84,10 +84,33 @@ function createRoom(username, socketId, config = {}) {
           seasonTeams = seasonData.teams;
         }
         if (seasonData.players && seasonData.players.length > 0) {
+          // Build a name→basePrice lookup from 2025 golden source
+          const basePriceLookup = new Map();
+          if (data2025.players) {
+            data2025.players.forEach(p2025 => {
+              basePriceLookup.set(p2025.name.trim().toLowerCase(), p2025.basePrice);
+            });
+          }
+
           seasonPlayers = seasonData.players.map(p => {
             const augmented = getAugmentedData(p.name);
+
+            // Look up base price from 2025 data (by player name)
+            const lookupKey = p.name.trim().toLowerCase();
+            let basePrice = basePriceLookup.get(lookupKey);
+
+            if (basePrice === undefined) {
+              // Player not in 2025 data (likely retired) — assign based on role
+              const role = augmented?.role || p.set || "BAT";
+              if (role === "WK") basePrice = 1;
+              else if (role === "AR") basePrice = 0.75;
+              else if (role === "BOWL") basePrice = 0.5;
+              else basePrice = 0.5; // BAT default
+            }
+
             return {
               ...p,
+              basePrice,
               // Polyfill missing fields via Lookup or defaults
               role: augmented?.role || p.set || "BAT",
               overseas: augmented?.overseas ?? (p.overseas || false),

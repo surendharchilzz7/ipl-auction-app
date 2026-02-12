@@ -6,7 +6,7 @@ export default function Retention({ room }) {
   // Hooks must be called unconditionally at the top
   const [retainedIds, setRetainedIds] = useState([]);
   const [submitted, setSubmitted] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(30);
+  const [timeLeft, setTimeLeft] = useState(180);
 
   // Timer countdown
   useEffect(() => {

@@ -6,7 +6,9 @@
     "MI",
     "PBKS",
     "RCB",
-    "SRH"
+    "SRH",
+    "GL",
+    "RPS"
   ],
   "players": [
     {
@@ -1009,6 +1011,324 @@
       "set": "BAT",
       "basePrice": 2,
       "originalTeam": "SRH"
+    },
+    {
+      "id": "Suresh_Raina_2017",
+      "name": "Suresh Raina",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "GL"
+    },
+    {
+      "id": "Brendon_McCullum_2017",
+      "name": "Brendon McCullum",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "GL",
+      "overseas": true
+    },
+    {
+      "id": "Aaron_Finch_2017",
+      "name": "Aaron Finch",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "GL",
+      "overseas": true
+    },
+    {
+      "id": "Dinesh_Karthik_2017",
+      "name": "Dinesh Karthik",
+      "set": "WK",
+      "basePrice": 2,
+      "originalTeam": "GL"
+    },
+    {
+      "id": "Ishan_Kishan_2017",
+      "name": "Ishan Kishan",
+      "set": "WK",
+      "basePrice": 2,
+      "originalTeam": "GL"
+    },
+    {
+      "id": "Jason_Roy_2017",
+      "name": "Jason Roy",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "GL",
+      "overseas": true
+    },
+    {
+      "id": "Chirag_Suri_2017",
+      "name": "Chirag Suri",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "GL",
+      "overseas": true
+    },
+    {
+      "id": "Ravindra_Jadeja_2017",
+      "name": "Ravindra Jadeja",
+      "set": "AR",
+      "basePrice": 2,
+      "originalTeam": "GL"
+    },
+    {
+      "id": "James_Faulkner_2017",
+      "name": "James Faulkner",
+      "set": "AR",
+      "basePrice": 2,
+      "originalTeam": "GL",
+      "overseas": true
+    },
+    {
+      "id": "Dwayne_Bravo_2017",
+      "name": "Dwayne Bravo",
+      "set": "AR",
+      "basePrice": 2,
+      "originalTeam": "GL",
+      "overseas": true
+    },
+    {
+      "id": "Dwayne_Smith_2017",
+      "name": "Dwayne Smith",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "GL",
+      "overseas": true
+    },
+    {
+      "id": "Shivil_Kaushik_2017",
+      "name": "Shivil Kaushik",
+      "set": "BOWL",
+      "basePrice": 2,
+      "originalTeam": "GL"
+    },
+    {
+      "id": "Shadab_Jakati_2017",
+      "name": "Shadab Jakati",
+      "set": "BOWL",
+      "basePrice": 2,
+      "originalTeam": "GL"
+    },
+    {
+      "id": "Pradeep_Sangwan_2017",
+      "name": "Pradeep Sangwan",
+      "set": "BOWL",
+      "basePrice": 2,
+      "originalTeam": "GL"
+    },
+    {
+      "id": "Andrew_Tye_2017",
+      "name": "Andrew Tye",
+      "set": "BOWL",
+      "basePrice": 2,
+      "originalTeam": "GL",
+      "overseas": true
+    },
+    {
+      "id": "Basil_Thampi_2017",
+      "name": "Basil Thampi",
+      "set": "BOWL",
+      "basePrice": 2,
+      "originalTeam": "GL"
+    },
+    {
+      "id": "Dhawal_Kulkarni_2017",
+      "name": "Dhawal Kulkarni",
+      "set": "BOWL",
+      "basePrice": 2,
+      "originalTeam": "GL"
+    },
+    {
+      "id": "Manpreet_Gony_2017",
+      "name": "Manpreet Gony",
+      "set": "BOWL",
+      "basePrice": 2,
+      "originalTeam": "GL"
+    },
+    {
+      "id": "Munaf_Patel_2017",
+      "name": "Munaf Patel",
+      "set": "BOWL",
+      "basePrice": 2,
+      "originalTeam": "GL"
+    },
+    {
+      "id": "Jaydev_Shah_2017",
+      "name": "Jaydev Shah",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "GL"
+    },
+    {
+      "id": "Ankit_Soni_2017",
+      "name": "Ankit Soni",
+      "set": "AR",
+      "basePrice": 2,
+      "originalTeam": "GL"
+    },
+    {
+      "id": "MS_Dhoni_2017",
+      "name": "MS Dhoni",
+      "set": "WK",
+      "basePrice": 2,
+      "originalTeam": "RPS"
+    },
+    {
+      "id": "Ajinkya_Rahane_2017",
+      "name": "Ajinkya Rahane",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RPS"
+    },
+    {
+      "id": "Steve_Smith_2017",
+      "name": "Steve Smith",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RPS",
+      "overseas": true
+    },
+    {
+      "id": "Faf_du_Plessis_2017",
+      "name": "Faf du Plessis",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RPS",
+      "overseas": true
+    },
+    {
+      "id": "Manoj_Tiwary_2017",
+      "name": "Manoj Tiwary",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RPS"
+    },
+    {
+      "id": "Rahul_Tripathi_2017",
+      "name": "Rahul Tripathi",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RPS"
+    },
+    {
+      "id": "Mayank_Agarwal_2017",
+      "name": "Mayank Agarwal",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RPS"
+    },
+    {
+      "id": "Ben_Stokes_2017",
+      "name": "Ben Stokes",
+      "set": "AR",
+      "basePrice": 2,
+      "originalTeam": "RPS",
+      "overseas": true
+    },
+    {
+      "id": "Dan_Christian_2017",
+      "name": "Dan Christian",
+      "set": "AR",
+      "basePrice": 2,
+      "originalTeam": "RPS",
+      "overseas": true
+    },
+    {
+      "id": "Mitchell_Marsh_2017",
+      "name": "Mitchell Marsh",
+      "set": "AR",
+      "basePrice": 2,
+      "originalTeam": "RPS",
+      "overseas": true
+    },
+    {
+      "id": "Baba_Aparajith_2017",
+      "name": "Baba Aparajith",
+      "set": "AR",
+      "basePrice": 2,
+      "originalTeam": "RPS"
+    },
+    {
+      "id": "Deepak_Chahar_2017",
+      "name": "Deepak Chahar",
+      "set": "BOWL",
+      "basePrice": 2,
+      "originalTeam": "RPS"
+    },
+    {
+      "id": "Washington_Sundar_2017",
+      "name": "Washington Sundar",
+      "set": "AR",
+      "basePrice": 2,
+      "originalTeam": "RPS"
+    },
+    {
+      "id": "Adam_Zampa_2017",
+      "name": "Adam Zampa",
+      "set": "BOWL",
+      "basePrice": 2,
+      "originalTeam": "RPS",
+      "overseas": true
+    },
+    {
+      "id": "Jaydev_Unadkat_2017",
+      "name": "Jaydev Unadkat",
+      "set": "BOWL",
+      "basePrice": 2,
+      "originalTeam": "RPS"
+    },
+    {
+      "id": "Ashok_Dinda_2017",
+      "name": "Ashok Dinda",
+      "set": "BOWL",
+      "basePrice": 2,
+      "originalTeam": "RPS"
+    },
+    {
+      "id": "Shardul_Thakur_2017",
+      "name": "Shardul Thakur",
+      "set": "BOWL",
+      "basePrice": 2,
+      "originalTeam": "RPS"
+    },
+    {
+      "id": "Lockie_Ferguson_2017",
+      "name": "Lockie Ferguson",
+      "set": "BOWL",
+      "basePrice": 2,
+      "originalTeam": "RPS",
+      "overseas": true
+    },
+    {
+      "id": "Imran_Tahir_2017",
+      "name": "Imran Tahir",
+      "set": "BOWL",
+      "basePrice": 2,
+      "originalTeam": "RPS",
+      "overseas": true
+    },
+    {
+      "id": "Ankush_Bains_2017",
+      "name": "Ankush Bains",
+      "set": "WK",
+      "basePrice": 2,
+      "originalTeam": "RPS"
+    },
+    {
+      "id": "Usman_Khawaja_2017",
+      "name": "Usman Khawaja",
+      "set": "BAT",
+      "basePrice": 2,
+      "originalTeam": "RPS",
+      "overseas": true
+    },
+    {
+      "id": "Ankit_Sharma_2017",
+      "name": "Ankit Sharma",
+      "set": "AR",
+      "basePrice": 2,
+      "originalTeam": "RPS"
     }
   ]
 }

@@ -135,6 +135,12 @@ export default function Auction({ room, timeOffset }) {
   useEffect(() => {
     if (!voiceEnabled) return;
 
+    // STOP voice immediately if auction is completed
+    if (room?.state === "COMPLETED") {
+      auctionVoice.stop();
+      return;
+    }
+
     const currentSet = room?.currentSet;
     const currentPlayer = room?.currentPlayer;
     const auctionState = room?.auctionState;
@@ -148,44 +154,33 @@ export default function Auction({ room, timeOffset }) {
 
     // Announce new player
     if (currentPlayer && currentPlayer.id !== prevPlayerRef.current?.id) {
-      // If set changed, queue player announcement (priority=false). 
-      // Otherwise interrupt (priority=true).
       const priority = !setChanged;
       auctionVoice.announcePlayer(currentPlayer, priority);
-
       prevPlayerRef.current = currentPlayer;
     }
 
     // Announce sold/unsold when bidding ends
-
-    // SPY LOG - unconditional
-    // console.log(`[Voice Spy] State: ${auctionState}, LFPlayer: ${!!room?.lastFinalizedPlayer}, Current: ${room?.currentPlayer?.name}`);
-
-    // LOGIC: Check lastFinalizedPlayer for "Sold" or "Unsold" status
-    // Note: Backend might send PLAYER_ACTIVE state during skip, so we rely on lastFinalizedPlayer being present
-
     if (room?.lastFinalizedPlayer) {
       if (room.lastFinalizedPlayer.sold) {
-        // SOLD CASE
         const saleKey = `${room.currentPlayer.id}-SOLD-${room.lastFinalizedPlayer.soldTo}`;
-
         if (saleKey !== prevSaleRef.current) {
-          console.log(`[Voice] Announcing SOLD: ${saleKey}`);
           auctionVoice.announceSold(room.lastFinalizedPlayer.soldTo, room.lastFinalizedPlayer.soldPrice);
           prevSaleRef.current = saleKey;
         }
       } else {
-        // UNSOLD CASE (lastFinalizedPlayer exists but sold=false)
         const unsoldKey = `${room.lastFinalizedPlayer.id}-UNSOLD`;
-
         if (unsoldKey !== prevSaleRef.current) {
-          console.log(`[Voice] Announcing UNSOLD: ${unsoldKey}`);
           auctionVoice.announceUnsold();
           prevSaleRef.current = unsoldKey;
         }
       }
     }
-  }, [room?.currentSet, room?.currentPlayer, room?.auctionState, room?.lastFinalizedPlayer, voiceEnabled]);
+  }, [room?.currentSet, room?.currentPlayer, room?.auctionState, room?.lastFinalizedPlayer, room?.state, voiceEnabled]);
+
+  // Stop voice on component unmount (tab switch / navigation away)
+  useEffect(() => {
+    return () => auctionVoice.stop();
+  }, []);
 
   // Toggle voice
   const toggleVoice = () => {
@@ -1035,7 +1030,7 @@ export default function Auction({ room, timeOffset }) {
                     console.log('[End Auction] User confirmed! Emitting end-auction for room:', room.id);
                     socket.emit('end-auction', { roomId: room.id });
                     console.log('[End Auction] Emit sent!');
-                    setShowEndConfirm(false);
+                    setShowEndAuctionConfirm(false);
                   }}
                   style={{
                     padding: '12px 24px',
