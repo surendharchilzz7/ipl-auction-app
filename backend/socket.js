@@ -157,6 +157,7 @@ module.exports = server => {
         // If retention enabled, go to RETENTION first
         if (room.config.retentionEnabled) {
           room.state = "RETENTION";
+          room.retentionEndsAt = Date.now() + 180000; // 3 minutes
           io.to(roomId).emit("room-update", serializeRoom(room));
 
           // Auto-finalize retentions after 3 minutes, then go to POOL_FILTER

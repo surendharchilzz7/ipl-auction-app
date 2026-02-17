@@ -20,6 +20,17 @@ module.exports = room => {
       // Timer state
       bidEndsAt: room.bidEndsAt,
       rtmEndsAt: room.rtmEndsAt,
+      retentionEndsAt: room.retentionEndsAt,
+
+      // Map of team -> currently retained players (for persistence)
+      currentRetentions: room.retainedPlayers
+        ? Object.fromEntries(
+          Object.entries(room.retainedPlayers).map(([team, players]) => [
+            team,
+            players.map(p => p.id)
+          ])
+        )
+        : {},
 
       // FSM auction state
       auctionState: room.auctionState || "INIT",

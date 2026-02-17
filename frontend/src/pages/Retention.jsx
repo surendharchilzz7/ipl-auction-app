@@ -4,9 +4,28 @@ import { getPlayerPhotoUrl, DEFAULT_PLAYER_IMAGE } from "../data/playerPhotos";
 
 export default function Retention({ room }) {
   // Hooks must be called unconditionally at the top
-  const [retainedIds, setRetainedIds] = useState([]);
+  // Initialize from persisted room data
+  const mySocketId = socket.id;
+  const me = room?.humans?.find(h => h.socketId === mySocketId);
+  const myTeamName = me?.team;
+
+  const [retainedIds, setRetainedIds] = useState(() => {
+    if (myTeamName && room?.currentRetentions?.[myTeamName]) {
+      return room.currentRetentions[myTeamName];
+    }
+    return [];
+  });
+
   const [submitted, setSubmitted] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(180);
+
+  const [timeLeft, setTimeLeft] = useState(() => {
+    if (room?.retentionEndsAt) {
+      // Calculate remaining time based on server timestamp
+      const remaining = Math.floor((room.retentionEndsAt - Date.now()) / 1000);
+      return Math.max(0, remaining);
+    }
+    return 180;
+  });
 
   // Timer countdown
   useEffect(() => {
@@ -15,6 +34,30 @@ export default function Retention({ room }) {
     }, 1000);
     return () => clearInterval(interval);
   }, []);
+
+  // Sync state when room data becomes available (handling page reload)
+  useEffect(() => {
+    if (myTeamName && room?.currentRetentions?.[myTeamName]) {
+      const serverIds = room.currentRetentions[myTeamName];
+      setRetainedIds(prev => {
+        // Only sync if local is empty and server has data (prevents overwriting visible toggles)
+        if (prev.length === 0 && serverIds.length > 0) {
+          return serverIds;
+        }
+        // Also sync if server matches local length but diff ids? 
+        // For now, assume empty check handles the reload case.
+        return prev;
+      });
+    }
+  }, [room, myTeamName]);
+
+  // Sync timer when room data becomes available
+  useEffect(() => {
+    if (room?.retentionEndsAt) {
+      const remaining = Math.floor((room.retentionEndsAt - Date.now()) / 1000);
+      setTimeLeft(Math.max(0, remaining));
+    }
+  }, [room?.retentionEndsAt]);
 
   // Null safety check - after hooks
   if (!room) {
@@ -28,9 +71,7 @@ export default function Retention({ room }) {
     );
   }
 
-  const mySocketId = socket.id;
-  const me = room.humans?.find(h => h.socketId === mySocketId);
-  const myTeamName = me?.team;
+  // mySocketId and me are defined above now
 
   // Get retainable players for my team
   const retainablePlayers = myTeamName && room.retainablePlayers
