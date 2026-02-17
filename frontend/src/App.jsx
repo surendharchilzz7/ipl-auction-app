@@ -23,6 +23,7 @@ export default function App() {
   const [error, setError] = useState(null);
   const [timeOffset, setTimeOffset] = useState(0);
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
+  const [reconnecting, setReconnecting] = useState(false);
 
   // Handle browser navigation for static pages
   useEffect(() => {
@@ -36,19 +37,26 @@ export default function App() {
     const urlParams = new URLSearchParams(window.location.search);
     const urlRoomCode = urlParams.get('room') || window.location.pathname.split('/room/')[1];
 
-    // Check for saved session
-    const savedRoomId = localStorage.getItem("auctionRoomId");
+    // Check for saved session (sessionStorage = per-tab, survives reload)
+    const savedRoomId = sessionStorage.getItem("auctionRoomId");
     const savedUsername = sessionStorage.getItem("auctionUsername");
+
+    // Helper: attempt rejoin and set reconnecting state
+    const attemptRejoin = (roomCode, username) => {
+      setReconnecting(true);
+      console.log("Auto-rejoining session:", roomCode);
+      socket.emit("join-room", { roomId: roomCode.toLowerCase(), username });
+      // Safety timeout: if no room-update in 5s, stop reconnecting
+      setTimeout(() => setReconnecting(false), 5000);
+    };
 
     if (socket.connected) {
       setConnected(true);
       // Priority: URL room code > saved room ID
       if (urlRoomCode && savedUsername) {
-        console.log("Joining room from URL:", urlRoomCode);
-        socket.emit("join-room", { roomId: urlRoomCode.toLowerCase(), username: savedUsername });
+        attemptRejoin(urlRoomCode, savedUsername);
       } else if (savedRoomId && savedUsername) {
-        console.log("Auto-rejoining saved room:", savedRoomId);
-        socket.emit("join-room", { roomId: savedRoomId, username: savedUsername });
+        attemptRejoin(savedRoomId, savedUsername);
       }
     }
 
@@ -57,11 +65,10 @@ export default function App() {
       console.log("Socket connected:", socket.id);
 
       // Attempt to rejoin if we have a saved ID
-      const currentSavedId = localStorage.getItem("auctionRoomId");
+      const currentSavedId = sessionStorage.getItem("auctionRoomId");
       const currentUsername = sessionStorage.getItem("auctionUsername");
       if (currentSavedId && currentUsername) {
-        console.log("Re-connected! Auto-joining:", currentSavedId);
-        socket.emit("join-room", { roomId: currentSavedId, username: currentUsername });
+        attemptRejoin(currentSavedId, currentUsername);
       }
     });
 
@@ -70,6 +77,7 @@ export default function App() {
     });
 
     socket.on("room-update", updatedRoom => {
+      setReconnecting(false); // Session restored successfully
       console.log("ROOM UPDATE:", updatedRoom.state, "summary:", !!updatedRoom.summary);
 
       // System Clock Sync: Calculate offset
@@ -81,10 +89,9 @@ export default function App() {
         }
       }
 
-      // Save ID to persist session
+      // Save ID to persist session (sessionStorage only - new tabs are independent)
       if (updatedRoom?.id) {
         sessionStorage.setItem("auctionRoomId", updatedRoom.id);
-        localStorage.setItem("auctionRoomId", updatedRoom.id);
 
         // Update URL with room code for easy sharing
         const newUrl = `${window.location.origin}?room=${updatedRoom.id.toUpperCase()}`;
@@ -103,6 +110,7 @@ export default function App() {
     socket.on("error", (err) => {
       console.error("Socket Error:", err);
       const msg = err?.message || err;
+      setReconnecting(false); // Rejoin failed, show lobby
 
       // Show error to user
       setError(msg);
@@ -113,7 +121,6 @@ export default function App() {
       // Clear session if room doesn't exist
       if (msg.includes("Room") || msg.includes("not found") || msg.includes("not exist")) {
         sessionStorage.removeItem("auctionRoomId");
-        localStorage.removeItem("auctionRoomId");
         window.history.replaceState({}, '', window.location.origin);
         setRoom(null);
       }
@@ -139,7 +146,8 @@ export default function App() {
     textShadow: '0 2px 4px rgba(0,0,0,0.5)'
   };
 
-  if (!connected) {
+  // Full-page connecting screen only on initial load (no room data yet)
+  if (!connected && !room) {
     return (
       <div style={{
         minHeight: '100vh',
@@ -233,7 +241,36 @@ export default function App() {
   if (currentPath === '/contact') { document.title = PAGE_TITLES['/contact']; return <><Contact /><CookieConsent /></>; }
 
   let content;
-  if (!room) {
+  if (!room && reconnecting) {
+    // Show reconnecting screen instead of Lobby while auto-rejoining
+    content = (
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #0f172a, #1e293b)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontFamily: '"Outfit", system-ui, sans-serif',
+        color: '#fff'
+      }}>
+        <div style={{ fontSize: 64, marginBottom: 24, animation: 'bounce 1.5s infinite ease-in-out' }}>🏏</div>
+        <h2 style={{ fontSize: 24, fontWeight: 600, marginBottom: 8, color: '#60a5fa' }}>Reconnecting...</h2>
+        <p style={{ color: '#9ca3af', fontSize: 14 }}>Restoring your auction session</p>
+        <div style={{
+          width: 40, height: 40, marginTop: 24,
+          border: '3px solid rgba(96, 165, 250, 0.2)',
+          borderTop: '3px solid #60a5fa',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite'
+        }} />
+        <style>{`
+          @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+          @keyframes spin { to { transform: rotate(360deg); } }
+        `}</style>
+      </div>
+    );
+  } else if (!room) {
     content = <Lobby />;
   } else if (room.state === "TEAM_SELECTION") {
     content = <TeamSelection room={room} />;
@@ -247,6 +284,35 @@ export default function App() {
 
   return (
     <>
+      {/* Disconnection overlay - shows on top of current page when network drops mid-session */}
+      {!connected && room && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(15, 23, 42, 0.85)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center',
+          zIndex: 9998,
+          fontFamily: '"Outfit", system-ui, sans-serif'
+        }}>
+          <div style={{ fontSize: 48, marginBottom: 16, animation: 'bounce 1.5s infinite ease-in-out' }}>📡</div>
+          <h2 style={{ color: '#f59e0b', fontSize: 22, fontWeight: 700, marginBottom: 8 }}>Connection Lost</h2>
+          <p style={{ color: '#9ca3af', fontSize: 14 }}>Reconnecting to your session...</p>
+          <div style={{
+            width: 36, height: 36, marginTop: 20,
+            border: '3px solid rgba(245, 158, 11, 0.2)',
+            borderTop: '3px solid #f59e0b',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite'
+          }} />
+          <p style={{ color: '#6b7280', fontSize: 12, marginTop: 16 }}>Your auction state is preserved</p>
+          <style>{`
+            @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+            @keyframes spin { to { transform: rotate(360deg); } }
+          `}</style>
+        </div>
+      )}
+
       {/* Error Toast */}
       {error && (
         <div style={{

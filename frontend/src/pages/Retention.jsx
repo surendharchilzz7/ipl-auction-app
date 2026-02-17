@@ -35,6 +35,14 @@ export default function Retention({ room }) {
     return () => clearInterval(interval);
   }, []);
 
+  // When timer hits 0, tell the server to finalize retention (backup for setTimeout)
+  useEffect(() => {
+    if (timeLeft === 0 && room?.id && room?.state === "RETENTION") {
+      console.log("[Retention] Timer expired, requesting finalization");
+      socket.emit("finalize-retention", { roomId: room.id });
+    }
+  }, [timeLeft, room?.id, room?.state]);
+
   // Sync state when room data becomes available (handling page reload)
   useEffect(() => {
     if (myTeamName && room?.currentRetentions?.[myTeamName]) {

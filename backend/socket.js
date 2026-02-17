@@ -162,13 +162,26 @@ module.exports = server => {
 
           // Auto-finalize retentions after 3 minutes, then go to POOL_FILTER
           setTimeout(() => {
+            // Guard: if already transitioned (e.g. frontend triggered finalize-retention), skip
+            if (room.state !== "RETENTION") {
+              console.log(`[Room] Retention already finalized in ${roomId}, skipping setTimeout`);
+              return;
+            }
             try {
               autoFinalizeRetention(room);
+              console.log(`[Room] Retention finalized successfully in ${roomId}`);
+            } catch (err) {
+              console.error("[lock-teams:retention] Error finalizing retention:", err);
+              // Still proceed - don't leave room stuck on retention
+            }
+            // ALWAYS transition to POOL_FILTER regardless of finalization result
+            try {
               room.state = "POOL_FILTER";
+              delete room.retentionEndsAt; // Clean up timer reference
               console.log(`[Room] Retention done, moving to Pool Filter in ${roomId}`);
               io.to(roomId).emit("room-update", serializeRoom(room));
-            } catch (err) {
-              console.error("[lock-teams:retention] Error:", err);
+            } catch (emitErr) {
+              console.error("[lock-teams:retention] Error emitting update:", emitErr);
             }
           }, 180000);
         } else {
@@ -297,6 +310,30 @@ module.exports = server => {
         io.to(roomId).emit("room-update", serializeRoom(room));
       } catch (err) {
         console.error("[retain-players] Error:", err);
+      }
+    });
+
+    // Finalize retention phase (frontend backup when timer reaches 0)
+    socket.on("finalize-retention", ({ roomId }) => {
+      try {
+        const room = rooms[roomId];
+        if (!room || room.state !== "RETENTION") return;
+
+        console.log(`[Retention] Frontend requested finalization for ${roomId}`);
+
+        try {
+          autoFinalizeRetention(room);
+          console.log(`[Room] Retention finalized via frontend request in ${roomId}`);
+        } catch (err) {
+          console.error("[finalize-retention] Error finalizing:", err);
+        }
+
+        room.state = "POOL_FILTER";
+        delete room.retentionEndsAt;
+        console.log(`[Room] Moving to Pool Filter in ${roomId}`);
+        io.to(roomId).emit("room-update", serializeRoom(room));
+      } catch (err) {
+        console.error("[finalize-retention] Error:", err);
       }
     });
 
