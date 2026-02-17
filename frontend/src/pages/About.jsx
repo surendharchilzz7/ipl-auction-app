@@ -61,9 +61,10 @@ export default function About() {
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 20 }}>
                         {[
                             { emoji: '🎮', title: 'Real-Time Multiplayer', desc: 'Play with up to 10 friends in live auction rooms' },
-                            { emoji: '🤖', title: 'AI Teams', desc: 'Fill empty slots with intelligent AI bidders' },
-                            { emoji: '📊', title: '600+ Players', desc: 'Complete player database with realistic base prices' },
-                            { emoji: '🔄', title: 'RTM System', desc: 'Authentic Right to Match mechanics' },
+                            { emoji: '🤖', title: 'Smart AI Teams', desc: 'Challenge intelligent AI bidders that use real auction strategies' },
+                            { emoji: '📅', title: 'All IPL Seasons', desc: 'Complete player database from 2008 to 2025' },
+                            { emoji: '🏛️', title: 'Historical Teams', desc: 'Play with Deccan Chargers, Pune Warriors, Gujarat Lions & more' },
+                            { emoji: '🔄', title: 'RTM System', desc: 'Authentic Right to Match mechanics (2025 Rules)' },
                             { emoji: '💰', title: 'Budget Management', desc: 'Configurable team budgets (120-200 Cr)' },
                             { emoji: '📱', title: 'Mobile Friendly', desc: 'Play anywhere on any device' }
                         ].map((feature, idx) => (

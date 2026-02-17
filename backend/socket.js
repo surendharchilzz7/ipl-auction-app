@@ -36,6 +36,7 @@ const {
   incrementAuctionsStarted,
   incrementAuctionsEnded,
   incrementTotalViews,
+  trackUniqueVisitor,
   initStats
 } = require("./utils/statsManager");
 
@@ -52,9 +53,17 @@ module.exports = server => {
   io.on("connection", socket => {
     console.log(`[Socket] Client connected: ${socket.id}`);
 
-    // Increment total views and broadcast to all clients
-    const updatedStats = incrementTotalViews();
-    io.emit("stats-update", updatedStats);
+    // Track unique visitors by IP — only count genuinely new visitors
+    const clientIP = socket.handshake.headers['x-forwarded-for']
+      || socket.handshake.headers['x-real-ip']
+      || socket.handshake.address
+      || 'unknown';
+    // Use the first IP if x-forwarded-for contains multiple
+    const primaryIP = clientIP.split(',')[0].trim();
+    const { stats: updatedStats, isNew } = trackUniqueVisitor(primaryIP);
+    if (isNew) {
+      io.emit("stats-update", updatedStats);
+    }
 
     // Handle stats request
     socket.on("get-stats", () => {

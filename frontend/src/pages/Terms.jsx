@@ -152,13 +152,33 @@ export default function Terms() {
                     </p>
                 </section>
 
+                <section style={{ marginBottom: 40 }}>
+                    <h2 style={{ fontSize: 24, marginBottom: 16, color: '#34d399' }}>12. DMCA & Copyright Notice</h2>
+                    <p style={{ fontSize: 16, lineHeight: 1.8, color: '#d1d5db', marginBottom: 16 }}>
+                        IPL Mock Auction respects the intellectual property rights of others. Player names, team names, logos, and related trademarks are the property of their respective owners, including the Board of Control for Cricket in India (BCCI) and individual IPL franchise owners.
+                    </p>
+                    <p style={{ fontSize: 16, lineHeight: 1.8, color: '#d1d5db', marginBottom: 16 }}>
+                        This is an unofficial fan-made simulation project created purely for entertainment and educational purposes. It is <strong style={{ color: '#fff' }}>not affiliated with, endorsed by, or connected to</strong> the IPL, BCCI, or any official cricket organization.
+                    </p>
+                    <p style={{ fontSize: 16, lineHeight: 1.8, color: '#d1d5db' }}>
+                        If you believe that any content on our platform infringes your copyright, please contact us through our <a href="/contact" style={{ color: '#60a5fa' }}>Contact page</a> with the following information: a description of the copyrighted work, the location of the infringing material, and your contact information. We will respond promptly to valid copyright concerns.
+                    </p>
+                </section>
+
+                <section style={{ marginBottom: 40 }}>
+                    <h2 style={{ fontSize: 24, marginBottom: 16, color: '#34d399' }}>13. Content Responsibility</h2>
+                    <p style={{ fontSize: 16, lineHeight: 1.8, color: '#d1d5db' }}>
+                        All user-generated content (including usernames and chat messages) is the sole responsibility of the user who created it. We do not pre-screen user content but reserve the right to remove any content that violates these Terms. We are not responsible for any content posted by users of the platform.
+                    </p>
+                </section>
+
                 <section style={{
                     background: 'rgba(59, 130, 246, 0.1)',
                     border: '1px solid rgba(59, 130, 246, 0.3)',
                     borderRadius: 16,
                     padding: 24
                 }}>
-                    <h2 style={{ fontSize: 24, marginBottom: 16, color: '#60a5fa' }}>12. Contact Information</h2>
+                    <h2 style={{ fontSize: 24, marginBottom: 16, color: '#60a5fa' }}>14. Contact Information</h2>
                     <p style={{ fontSize: 16, lineHeight: 1.8, color: '#d1d5db' }}>
                         If you have any questions about these Terms of Service, please contact us through our <a href="/contact" style={{ color: '#60a5fa' }}>Contact page</a>.
                     </p>

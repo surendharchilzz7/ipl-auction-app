@@ -14,6 +14,9 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Contact from "./pages/Contact";
 
+// Cookie Consent Banner (GDPR / AdSense requirement)
+import CookieConsent from "./components/CookieConsent";
+
 export default function App() {
   const [room, setRoom] = useState(null);
   const [connected, setConnected] = useState(socket.connected);
@@ -213,12 +216,21 @@ export default function App() {
     );
   }
 
+  // SEO: Set per-page document title for static pages
+  const PAGE_TITLES = {
+    '/about': 'About – IPL Mock Auction',
+    '/how-to-play': 'How to Play – IPL Mock Auction',
+    '/privacy': 'Privacy Policy – IPL Mock Auction',
+    '/terms': 'Terms of Service – IPL Mock Auction',
+    '/contact': 'Contact Us – IPL Mock Auction'
+  };
+
   // Check for static pages first (before room/socket logic)
-  if (currentPath === '/about') return <About />;
-  if (currentPath === '/how-to-play') return <HowToPlay />;
-  if (currentPath === '/privacy') return <Privacy />;
-  if (currentPath === '/terms') return <Terms />;
-  if (currentPath === '/contact') return <Contact />;
+  if (currentPath === '/about') { document.title = PAGE_TITLES['/about']; return <><About /><CookieConsent /></>; }
+  if (currentPath === '/how-to-play') { document.title = PAGE_TITLES['/how-to-play']; return <><HowToPlay /><CookieConsent /></>; }
+  if (currentPath === '/privacy') { document.title = PAGE_TITLES['/privacy']; return <><Privacy /><CookieConsent /></>; }
+  if (currentPath === '/terms') { document.title = PAGE_TITLES['/terms']; return <><Terms /><CookieConsent /></>; }
+  if (currentPath === '/contact') { document.title = PAGE_TITLES['/contact']; return <><Contact /><CookieConsent /></>; }
 
   let content;
   if (!room) {
@@ -272,6 +284,7 @@ export default function App() {
         </div>
       )}
       {content}
+      <CookieConsent />
       <div style={footerStyle}>By Surendhar</div>
       <style>{`
         @keyframes slideDown {

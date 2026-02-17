@@ -84,6 +84,8 @@ export default function HowToPlay() {
                     <h3 style={{ fontSize: 18, color: '#fff', marginBottom: 12 }}>Configuration Options:</h3>
                     <ul style={{ paddingLeft: 24, lineHeight: 2, color: '#d1d5db' }}>
                         <li><strong style={{ color: '#fff' }}>Team Budget:</strong> Set from ₹120 Cr to ₹200 Cr per team</li>
+                        <li><strong style={{ color: '#fff' }}>Player Sets:</strong> Choose from 2025 Auction, Specific Seasons (2008-2024), or All-Time Greats</li>
+                        <li><strong style={{ color: '#fff' }}>Historical Teams:</strong> Enable Deccan Chargers, Pune Warriors, etc. for a nostalgic experience</li>
                         <li><strong style={{ color: '#fff' }}>AI Teams:</strong> Enable to fill empty team slots with intelligent AI bidders</li>
                         <li><strong style={{ color: '#fff' }}>Retention Mode:</strong> Allow teams to retain players before the auction begins</li>
                     </ul>

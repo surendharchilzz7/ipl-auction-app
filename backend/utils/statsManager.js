@@ -8,6 +8,9 @@ const path = require('path');
 
 const STATS_FILE = path.join(__dirname, '../data/stats.json');
 
+// In-memory set to track unique visitor IPs (resets on server restart)
+const seenVisitorIPs = new Set();
+
 // Default stats structure
 const DEFAULT_STATS = {
     auctionsStarted: 0,
@@ -69,7 +72,7 @@ function incrementAuctionsEnded() {
 }
 
 /**
- * Increment total views counter
+ * Increment total views counter (legacy - use trackUniqueVisitor instead)
  * @returns {Object} Updated stats
  */
 function incrementTotalViews() {
@@ -77,6 +80,31 @@ function incrementTotalViews() {
     stats.totalViews++;
     saveStats(stats);
     return stats;
+}
+
+/**
+ * Track a unique visitor by IP address.
+ * Only increments totalViews if this IP hasn't been seen before.
+ * @param {string} ip - The visitor's IP address
+ * @returns {{ stats: Object, isNew: boolean }} Updated stats and whether this was a new visitor
+ */
+function trackUniqueVisitor(ip) {
+    // Normalize IP (strip IPv6 prefix if present)
+    const normalizedIP = ip ? ip.replace(/^::ffff:/, '') : 'unknown';
+
+    if (seenVisitorIPs.has(normalizedIP)) {
+        // Returning visitor — don't increment, just return current stats
+        return { stats: getStats(), isNew: false };
+    }
+
+    // New unique visitor
+    seenVisitorIPs.add(normalizedIP);
+    console.log(`[Stats] New unique visitor: ${normalizedIP} (total unique this session: ${seenVisitorIPs.size})`);
+
+    const stats = getStats();
+    stats.totalViews++;
+    saveStats(stats);
+    return { stats, isNew: true };
 }
 
 /**
@@ -112,5 +140,6 @@ module.exports = {
     incrementAuctionsStarted,
     incrementAuctionsEnded,
     incrementTotalViews,
+    trackUniqueVisitor,
     initStats
 };

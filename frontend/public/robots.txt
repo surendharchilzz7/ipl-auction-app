@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+
+# Static pages
+Allow: /about
+Allow: /how-to-play
+Allow: /privacy
+Allow: /terms
+Allow: /contact
+
+# AdSense verification
+Allow: /ads.txt
+
+Sitemap: https://mockauction.in/sitemap.xml

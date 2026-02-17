@@ -315,14 +315,14 @@ export default function PlayerCard({
                   onClick={skipAIBidding}
                   style={{
                     width: '100%',
-                    padding: '12px',
-                    marginTop: 8,
+                    padding: '8px', // Compact
+                    marginTop: 6,
                     background: 'linear-gradient(135deg, #f59e0b, #d97706)',
                     border: 'none',
-                    borderRadius: 10,
+                    borderRadius: 8,
                     color: '#fff',
                     fontWeight: 'bold',
-                    fontSize: 14,
+                    fontSize: 13,
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
@@ -338,14 +338,14 @@ export default function PlayerCard({
               {/* AI Skipped Indicator */}
               {aiSkipped && (
                 <div style={{
-                  padding: 10,
-                  marginTop: 8,
+                  padding: 8,
+                  marginTop: 6,
                   background: 'rgba(245, 158, 11, 0.2)',
                   border: '1px solid rgba(245, 158, 11, 0.5)',
-                  borderRadius: 10,
+                  borderRadius: 8,
                   textAlign: 'center',
                   color: '#fbbf24',
-                  fontSize: 13
+                  fontSize: 12
                 }}>
                   ⚡ AI bid locked - won't counter!
                 </div>

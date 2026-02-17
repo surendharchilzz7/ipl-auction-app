@@ -638,7 +638,7 @@ export default function Lobby() {
           <a href="/contact" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: 13 }}>Contact</a>
         </div>
         <p style={{ color: '#6b7280', fontSize: 11, marginTop: 8 }}>
-          © 2024 IPL Mock Auction. Created by Surendhar.
+          © 2026 IPL Mock Auction. Created by Surendhar.
         </p>
       </footer>
 

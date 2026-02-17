@@ -92,6 +92,7 @@ export default function Auction({ room, timeOffset }) {
   const [activeRoleTab, setActiveRoleTab] = useState('BAT');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTeam, setSelectedTeam] = useState(null);
+  const [selectedTeamIdx, setSelectedTeamIdx] = useState(0);
   const [selectedSet, setSelectedSet] = useState(null);
   const [showEndConfirm, setShowEndConfirm] = useState(false);
   const [showEndAuctionConfirm, setShowEndAuctionConfirm] = useState(false);
@@ -526,7 +527,7 @@ export default function Auction({ room, timeOffset }) {
     <button
       onClick={onClick}
       style={{
-        padding: '12px 20px',
+        padding: '8px 16px',
         background: isActive ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(37, 99, 235, 0.2))' : 'rgba(255, 255, 255, 0.05)',
         border: isActive ? '1px solid #3b82f6' : '1px solid rgba(255, 255, 255, 0.1)',
         borderRadius: 'var(--radius-md)',
@@ -720,10 +721,11 @@ export default function Auction({ room, timeOffset }) {
         flex: 1,
         display: 'flex',
         flexDirection: 'column',
-        padding: 16,
+        padding: '8px 16px',
         maxWidth: 1600,
         margin: '0 auto',
-        width: '100%'
+        width: '100%',
+        minHeight: 0
       }}>
 
         {/* Top Ad Banner (Mobile Only - usually good for revenue) */}
@@ -734,8 +736,8 @@ export default function Auction({ room, timeOffset }) {
         {/* Header - Premium Glassmorphism */}
         <div style={{
           borderRadius: 'var(--radius-lg)',
-          padding: '16px 24px',
-          marginBottom: 16,
+          padding: '12px 24px',
+          marginBottom: 8,
           background: 'var(--glass-bg)',
           backdropFilter: 'blur(20px)',
           border: '1px solid var(--glass-border)',
@@ -831,7 +833,7 @@ export default function Auction({ room, timeOffset }) {
         </div>
 
         {/* Navigation Buttons */}
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center', marginBottom: 8 }}>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center', width: window.innerWidth < 768 ? '100%' : 'auto' }}>
             {navButton('Search', '🔍', () => setActiveModal('search'), activeModal === 'search')}
             {navButton('Sets', '📋', () => { setSelectedSet(room.currentSet); setActiveModal('sets'); }, activeModal === 'sets')}
@@ -1637,42 +1639,313 @@ export default function Auction({ room, timeOffset }) {
           display: 'flex',
           flexDirection: 'column',
           height: '100%',
-          gap: isMobile ? 4 : 8 // Tighter gap on mobile and desktop
+          gap: isMobile ? 4 : 8,
+          minHeight: 0,
+          overflowY: 'auto'
         }}>
-          <div style={{
-            flex: 1,
-            position: 'relative',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center' // Center content vertically
-          }}>
-            {/* Player Card - Auto height */}
-            <div style={{ flex: 1, minHeight: 0 }}>
-              <PlayerCard
-                player={room.currentPlayer}
-                currentBid={room.currentBid}
-                teams={room.teams}
-                onSkip={() => socket.emit("skip-player", { roomId: room.id })}
-                canSkip={isHost && !room.currentBid}
-                myTeam={myTeam}
-                roomId={room.id}
-                lastBidTeamId={room.lastBidTeamId}
-                bidEndsAt={room.bidEndsAt}
-                timeOffset={timeOffset}
-                allowAI={room.config?.allowAI}
-                aiSkipped={room.aiSkipped}
-              />
-            </div>
+          {/* Player Card - fills available space */}
+          <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+            <PlayerCard
+              player={room.currentPlayer}
+              currentBid={room.currentBid}
+              teams={room.teams}
+              onSkip={() => socket.emit("skip-player", { roomId: room.id })}
+              canSkip={isHost && !room.currentBid}
+              myTeam={myTeam}
+              roomId={room.id}
+              lastBidTeamId={room.lastBidTeamId}
+              bidEndsAt={room.bidEndsAt}
+              timeOffset={timeOffset}
+              allowAI={room.config?.allowAI}
+              aiSkipped={room.aiSkipped}
+            />
           </div>
+
+
+
+          {/* Ad Slot - Fills void below player card */}
+          {!isMobile && (
+            <div style={{ marginTop: 'auto', paddingTop: 8 }}>
+              <AdBanner slotId="AUCTION_LEFT_BOTTOM" format="horizontal" style={{ width: '100%', height: 90 }} />
+            </div>
+          )}
         </div>
 
-        {/* Right Side - Team Panels (Sidebar) */}
+        {/* Right Side - Team Panels (Sidebar with Slider) */}
         <div className="team-sidebar" style={{
           height: '100%',
-          overflowY: 'auto',
-          paddingRight: 8
+          display: 'flex',
+          flexDirection: 'column',
+          paddingRight: 8,
+          overflow: 'hidden'
         }}>
-          <TeamPanel teams={room.teams} hostSocketId={room.hostSocketId} maxBudget={room.config?.budget || room.rules?.purse || 120} />
+          {/* Team Logo Slider Strip */}
+          {(() => {
+            const sidebarTeams = [...(room.teams || [])].sort((a, b) => b.budget - a.budget);
+            const TEAM_COLORS_MAP = {
+              CSK: '#f9cd05', MI: '#004ba0', RCB: '#ec1c24', KKR: '#3a225d', SRH: '#ff822a',
+              RR: '#ea1a85', DC: '#0078bc', PBKS: '#ed1b24', LSG: '#00b7eb', GT: '#1c1c1c'
+            };
+            const SIDEBAR_LOGOS = {
+              CSK: '/team-logos/CSK.png', MI: '/team-logos/MI.png', RCB: '/team-logos/RCB.png',
+              KKR: '/team-logos/KKR.png', SRH: '/team-logos/SRH.png', RR: '/team-logos/RR.png',
+              DC: '/team-logos/DC.png', PBKS: '/team-logos/PBKS.png', LSG: '/team-logos/LSG.png',
+              GT: '/team-logos/GT.png', DD: '/team-logos/DD.png', DEC: '/team-logos/DEC.png',
+              PWI: '/team-logos/PWI.png', KTK: '/team-logos/KTK.png', GL: '/team-logos/GL.png',
+              RPS: '/team-logos/RPS.png'
+            };
+            const ROLE_COLORS_MAP = { BAT: '#60a5fa', BOWL: '#34d399', AR: '#fbbf24', WK: '#f472b6' };
+            const selectedIdx = typeof selectedTeamIdx === 'number' ? selectedTeamIdx : 0;
+            const selectedTeam = sidebarTeams[selectedIdx];
+            const maxBudgetVal = room.config?.budget || room.rules?.purse || 120;
+
+            return (
+              <>
+                {/* Slider Header */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  marginBottom: 8,
+                  flexShrink: 0
+                }}>
+                  {/* Left Arrow */}
+                  <button
+                    onClick={() => setSelectedTeamIdx(prev => {
+                      const p = typeof prev === 'number' ? prev : 0;
+                      return p > 0 ? p - 1 : sidebarTeams.length - 1;
+                    })}
+                    style={{
+                      background: 'rgba(255,255,255,0.08)',
+                      border: '1px solid rgba(255,255,255,0.15)',
+                      borderRadius: 6,
+                      color: '#9ca3af',
+                      width: 28, height: 28,
+                      cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 14, flexShrink: 0,
+                      transition: 'all 0.2s'
+                    }}
+                  >◀</button>
+
+                  {/* Team Logo Strip */}
+                  <div style={{
+                    display: 'flex',
+                    gap: 4,
+                    overflowX: 'auto',
+                    flex: 1,
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none',
+                    padding: '2px 0'
+                  }}>
+                    {sidebarTeams.map((t, idx) => (
+                      <button
+                        key={t.id}
+                        onClick={() => setSelectedTeamIdx(idx)}
+                        style={{
+                          background: idx === selectedIdx
+                            ? `${TEAM_COLORS_MAP[t.name] || '#3b82f6'}30`
+                            : 'rgba(255,255,255,0.05)',
+                          border: idx === selectedIdx
+                            ? `2px solid ${TEAM_COLORS_MAP[t.name] || '#3b82f6'}`
+                            : '2px solid transparent',
+                          borderRadius: 8,
+                          padding: 4,
+                          cursor: 'pointer',
+                          flexShrink: 0,
+                          width: 36, height: 36,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          transition: 'all 0.2s',
+                          position: 'relative'
+                        }}
+                        title={t.name}
+                      >
+                        <img
+                          src={SIDEBAR_LOGOS[t.name]}
+                          alt={t.name}
+                          style={{ width: 24, height: 24, objectFit: 'contain' }}
+                          onError={e => { e.target.style.display = 'none'; }}
+                        />
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Right Arrow */}
+                  <button
+                    onClick={() => setSelectedTeamIdx(prev => {
+                      const p = typeof prev === 'number' ? prev : 0;
+                      return p < sidebarTeams.length - 1 ? p + 1 : 0;
+                    })}
+                    style={{
+                      background: 'rgba(255,255,255,0.08)',
+                      border: '1px solid rgba(255,255,255,0.15)',
+                      borderRadius: 6,
+                      color: '#9ca3af',
+                      width: 28, height: 28,
+                      cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 14, flexShrink: 0,
+                      transition: 'all 0.2s'
+                    }}
+                  >▶</button>
+                </div>
+
+                {/* Selected Team Card */}
+                {selectedTeam && (
+                  <div style={{
+                    flex: 1,
+                    overflowY: 'auto',
+                    background: 'rgba(30, 41, 59, 0.95)',
+                    borderRadius: 12,
+                    padding: 16,
+                    border: `1px solid ${TEAM_COLORS_MAP[selectedTeam.name] || 'rgba(255,255,255,0.1)'}40`
+                  }}>
+                    {/* Team Header */}
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: 12
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <img
+                          src={SIDEBAR_LOGOS[selectedTeam.name]}
+                          alt={selectedTeam.name}
+                          style={{ width: 40, height: 40, borderRadius: 6, objectFit: 'contain', background: 'rgba(255,255,255,0.1)' }}
+                          onError={e => { e.target.style.display = 'none'; }}
+                        />
+                        <div>
+                          <div style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>{selectedTeam.name}</div>
+                          <div style={{ color: '#9ca3af', fontSize: 11 }}>
+                            {selectedTeam.isAI ? '🤖 AI' : `👤 ${selectedTeam.owner}`}
+                            {!selectedTeam.isAI && selectedTeam.socketId && room.hostSocketId && selectedTeam.socketId === room.hostSocketId && (
+                              <span style={{ color: '#f59e0b', fontWeight: 'bold', marginLeft: 6, fontSize: 9, background: 'rgba(245,158,11,0.1)', padding: '1px 5px', borderRadius: 4 }}>HOST</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ color: '#9ca3af', fontSize: 9, letterSpacing: 1 }}>PURSE REMAINING</div>
+                        <div style={{
+                          fontWeight: 900,
+                          fontSize: 18,
+                          fontFamily: '"Outfit", sans-serif',
+                          color: selectedTeam.budget < 15 ? '#ef4444' : selectedTeam.budget < 40 ? '#f59e0b' : '#10b981'
+                        }}>
+                          ₹{selectedTeam.budget?.toFixed(2)} Cr
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Budget Bar */}
+                    <div style={{ marginBottom: 12 }}>
+                      <div style={{ height: 5, background: 'rgba(255,255,255,0.1)', borderRadius: 3, overflow: 'hidden' }}>
+                        <div style={{
+                          width: `${(selectedTeam.budget / maxBudgetVal) * 100}%`,
+                          height: '100%',
+                          background: selectedTeam.budget < 15 ? 'linear-gradient(90deg, #ef4444, #b91c1c)' : 'linear-gradient(90deg, #10b981, #059669)',
+                          transition: 'width 1s cubic-bezier(0.4, 0, 0.2, 1)',
+                          borderRadius: 3
+                        }} />
+                      </div>
+                    </div>
+
+                    {/* Role Distribution */}
+                    <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
+                      {['BAT', 'BOWL', 'AR', 'WK'].map(role => {
+                        const count = selectedTeam.players?.filter(p => p.role === role).length || 0;
+                        return (
+                          <div key={role} style={{
+                            padding: '3px 8px',
+                            borderRadius: 16,
+                            background: count > 0 ? `${ROLE_COLORS_MAP[role]}20` : 'rgba(255,255,255,0.05)',
+                            border: `1px solid ${count > 0 ? `${ROLE_COLORS_MAP[role]}60` : 'rgba(255,255,255,0.1)'}`,
+                            fontSize: 10,
+                            fontWeight: 600,
+                            color: count > 0 ? ROLE_COLORS_MAP[role] : '#64748b',
+                            display: 'flex', alignItems: 'center', gap: 3
+                          }}>
+                            <span>{role}</span>
+                            <span style={{ color: count > 0 ? '#fff' : '#475569' }}>{count}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Players List */}
+                    <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 10 }}>
+                      {selectedTeam.players?.length === 0 ? (
+                        <p style={{ color: '#6b7280', textAlign: 'center', padding: 8, fontSize: 13 }}>
+                          No players yet
+                        </p>
+                      ) : (
+                        <div>
+                          {selectedTeam.players?.map((player, idx) => (
+                            <div key={player.id || idx} style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              padding: '6px 8px',
+                              background: idx % 2 === 0 ? 'rgba(55, 65, 81, 0.3)' : 'transparent',
+                              borderRadius: 5,
+                              fontSize: 12
+                            }}>
+                              <span style={{ color: '#fff', display: 'flex', alignItems: 'center', gap: 4 }}>
+                                {idx + 1}. {player.name}
+                                {player.overseas && (
+                                  <span style={{
+                                    fontSize: 9,
+                                    background: 'rgba(239,68,68,0.2)',
+                                    color: '#f87171',
+                                    padding: '0px 3px',
+                                    borderRadius: 3,
+                                    border: '1px solid rgba(239,68,68,0.3)'
+                                  }}>✈️</span>
+                                )}
+                                <span style={{ color: '#9ca3af', fontSize: 10 }}>({player.role})</span>
+                              </span>
+                              <span style={{ color: '#34d399', fontWeight: 500, fontSize: 11 }}>
+                                ₹{player.soldPrice?.toFixed(2)}Cr
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Squad Progress */}
+                    <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#9ca3af', marginBottom: 3 }}>
+                        <span>Squad Size</span>
+                        <span>{selectedTeam.players?.length || 0} / 25</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#9ca3af', marginBottom: 3 }}>
+                        <span>Overseas</span>
+                        <span style={{
+                          color: (selectedTeam.players?.filter(p => p.overseas).length || 0) >= 8 ? '#ef4444' : '#9ca3af'
+                        }}>
+                          {selectedTeam.players?.filter(p => p.overseas).length || 0} / 8
+                        </span>
+                      </div>
+                      <div style={{ height: 3, background: '#374151', borderRadius: 2, overflow: 'hidden' }}>
+                        <div style={{
+                          width: `${((selectedTeam.players?.length || 0) / 25) * 100}%`,
+                          height: '100%',
+                          background: '#3b82f6'
+                        }} />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </>
+            );
+          })()}
+
+          {/* Ad Slot - Fills void below sidebar */}
+          {!isMobile && (
+            <div style={{ marginTop: 'auto', paddingTop: 8 }}>
+              <AdBanner slotId="AUCTION_RIGHT_BOTTOM" format="horizontal" style={{ width: '100%', height: 90 }} />
+            </div>
+          )}
         </div>
         {/* Right Side - The CONSOLE (Data Only) */}
 
