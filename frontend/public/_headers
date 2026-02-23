@@ -1,0 +1,12 @@
+# Ensure ads.txt is served as plain text (critical for AdSense)
+/ads.txt
+  Content-Type: text/plain
+  X-Robots-Tag: noindex
+
+# Sitemap
+/sitemap.xml
+  Content-Type: application/xml
+
+# Robots
+/robots.txt
+  Content-Type: text/plain

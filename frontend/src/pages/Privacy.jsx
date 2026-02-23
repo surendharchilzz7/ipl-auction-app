@@ -165,7 +165,7 @@ export default function Privacy() {
                     </p>
                     <ul style={{ paddingLeft: 24, lineHeight: 2, color: '#d1d5db', marginTop: 16 }}>
                         <li><strong style={{ color: '#fff' }}>Website:</strong> <a href="/contact" style={{ color: '#60a5fa' }}>Contact Form</a></li>
-                        <li><strong style={{ color: '#fff' }}>Platform:</strong> IPL Mock Auction (mockauction.in)</li>
+                        <li><strong style={{ color: '#fff' }}>Platform:</strong> IPL Mock Auction (warm-iplauction-4d35e6.netlify.app)</li>
                     </ul>
                 </section>
             </main>

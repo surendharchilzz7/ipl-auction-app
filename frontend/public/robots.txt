@@ -11,4 +11,5 @@ Allow: /contact
 # AdSense verification
 Allow: /ads.txt
 
-Sitemap: https://mockauction.in/sitemap.xml
+# Sitemap
+Sitemap: https://warm-iplauction-4d35e6.netlify.app/sitemap.xml

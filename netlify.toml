@@ -1,0 +1,49 @@
+[build]
+  base = "frontend/"
+  command = "npm run build"
+  publish = "dist/"
+
+# Ensure static files are served correctly (not caught by SPA redirect)
+[[redirects]]
+  from = "/ads.txt"
+  to = "/ads.txt"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/robots.txt"
+  to = "/robots.txt"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/sitemap.xml"
+  to = "/sitemap.xml"
+  status = 200
+  force = true
+
+# SPA fallback - MUST be last
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Force correct Content-Type headers for critical files
+[[headers]]
+  for = "/ads.txt"
+  [headers.values]
+    Content-Type = "text/plain; charset=utf-8"
+    X-Robots-Tag = "noindex"
+    Cache-Control = "public, max-age=86400"
+
+[[headers]]
+  for = "/robots.txt"
+  [headers.values]
+    Content-Type = "text/plain; charset=utf-8"
+    Cache-Control = "public, max-age=86400"
+
+[[headers]]
+  for = "/sitemap.xml"
+  [headers.values]
+    Content-Type = "application/xml; charset=utf-8"
+    Cache-Control = "public, max-age=86400"
