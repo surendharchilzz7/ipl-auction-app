@@ -128,6 +128,53 @@ function createRoom(username, socketId, config = {}) {
       // 2025 Default Logic (uses imports at top)
       seasonTeams = IPL_TEAMS.length > 0 ? IPL_TEAMS : DEFAULT_TEAMS;
 
+      // Name alias map: maps iplt20_master_data 2024 names → players_2025.json names
+      // Prevents duplicate player injection caused by name mismatches
+      const NAME_ALIASES = {
+        'avanish rao aravelly': 'aravelly avanish',
+        'n. tilak varma': 'tilak varma',
+        'kumar kartikeya singh': 'kumar kartikeya',
+        'suyash s prabhudessai': 'suyash prabhudessai',
+        'saurav chuahan': 'saurav chauhan',
+        'vyshak vijaykumar': 'vijaykumar vyshak',
+        'k.s bharat': 'srikar bharat',
+        'allah ghazanfar': 'am ghazanfar',
+        'varun chakaravarthy': 'varun chakravarthy',
+        'kunal rathore': 'kunal singh rathore',
+        'swastik chhikara': 'swastik chikara',
+        'pravin dubey': 'praveen dubey',
+        'rasikh dar': 'rasikh salam',
+        'mayank agarwal': 'mayank agarawal',
+        'upendra singh yadav': 'upendra yadav',
+        'shahbaz ahamad': 'shahbaz ahmed',
+        'shahrukh khan': 'm shahrukh khan',
+        'mohammad shami': 'mohammed shami',
+        'joshua little': 'josh little',
+        'mohd. arshad khan': 'arshad khan',
+        'yudhvir singh charak': 'yudhvir singh',
+        'm. siddharth': 'manimaran siddharth',
+        'tanay thyagarajann': 'tanay thyagarajan',
+        'harpreet bhatia': null, // Retired, not in 2025 pool
+        'dinesh karthik': null, // Retired
+        'cameron green': null,  // Injured, not in 2025 auction
+        'matthew wade': null,   // Retired from IPL
+        'wriddhiman saha': null, // Retired
+        'david willey': null,    // Retired
+        'amit mishra': null,     // Retired
+        'chris woakes': null,    // Not in 2025 auction
+        'vishwanath pratap singh': null, // Not in auction pool
+        'shikhar dhawan': null,  // Retired
+      };
+
+      // Helper: normalize a 2024 master data name to its 2025 equivalent
+      function normalizeName(name) {
+        const lower = name.trim().toLowerCase();
+        if (NAME_ALIASES.hasOwnProperty(lower)) {
+          return NAME_ALIASES[lower]; // Returns null for retired players
+        }
+        return lower;
+      }
+
       // Explicitly inject 2024 retention data for 2025 players here if not present
       // Because data2025.json usually has null originalTeam
       const iplt20Master = require("./data/iplt20_master_data.json");
@@ -161,7 +208,12 @@ function createRoom(username, socketId, config = {}) {
           // 2. FIND MISSING STARS: Iterate 2024 retention list and ADD players not in 2025 pool
           Object.keys(prevSquads).forEach(playerName => {
             const pData = prevSquads[playerName];
-            const exists = seasonPlayersMap.has(playerName.trim().toLowerCase());
+            const normalized = normalizeName(playerName);
+
+            // Skip retired/unavailable players (alias mapped to null)
+            if (normalized === null) return;
+
+            const exists = seasonPlayersMap.has(normalized);
 
             if (!exists && pData.team) {
               // console.log(`[CreateRoom] Missing 2024 Player Found: ${playerName} (${pData.team}). Injecting to pool.`);
@@ -177,6 +229,12 @@ function createRoom(username, socketId, config = {}) {
                 overseas: pData.overseas || false,
                 set: "RETENTION_ADDON"
               });
+            } else if (exists && pData.team) {
+              // Update originalTeam for matched players
+              const existingPlayer = seasonPlayersMap.get(normalized);
+              if (existingPlayer && !existingPlayer.originalTeam) {
+                existingPlayer.originalTeam = getTeamCode(pData.team);
+              }
             }
           });
 
@@ -343,13 +401,15 @@ function joinRoom(roomId, username, socketId) {
   if (human) {
     // User with same username exists - check if they're still online
     if (human.socketId && human.socketId !== socketId) {
-      // SECURITY: Original user is still online - reject duplicate username
-      console.log(`[Join] REJECTED: Username "${username}" is already in use by socket ${human.socketId}`);
-      return null; // Return null to indicate join failure
+      // RECONNECTION FIX: The old socket is likely stale (browser refreshed,
+      // network dropped). Allow the new socket to take over instead of rejecting.
+      // The old socket's disconnect event will fire later but harmlessly since
+      // we've already updated the socketId.
+      console.log(`[Join] Player ${username} reconnecting with new socket ${socketId} (replacing stale socket ${human.socketId})`);
+    } else if (!human.socketId) {
+      // Original user is OFFLINE (socketId is null) - allow reconnection
+      console.log(`[Join] Player ${username} reconnecting to room ${roomId}`);
     }
-
-    // Original user is OFFLINE (socketId is null) - allow reconnection
-    console.log(`[Join] Player ${username} reconnecting to room ${roomId}`);
 
     // Check if this user was the original host (first human in the list)
     const wasHost = room.humans[0]?.username === username;

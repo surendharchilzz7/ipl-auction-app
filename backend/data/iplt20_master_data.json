@@ -11519,7 +11519,7 @@
   "2024": {
     "Ruturaj Gaikwad": {
       "role": "BAT",
-      "overseas": true,
+      "overseas": false,
       "team": "Chennai Super Kings"
     },
     "Devon Conway": {
@@ -11689,7 +11689,7 @@
     },
     "Hardik Pandya": {
       "role": "AR",
-      "overseas": true,
+      "overseas": false,
       "team": "Mumbai Indians"
     },
     "Mohammad Nabi": {
@@ -11909,7 +11909,7 @@
     },
     "Shreyas Iyer": {
       "role": "BAT",
-      "overseas": true,
+      "overseas": false,
       "team": "Kolkata Knight Riders"
     },
     "Rinku Singh": {
@@ -12024,7 +12024,7 @@
     },
     "Sanju Samson": {
       "role": "WK",
-      "overseas": true,
+      "overseas": false,
       "team": "Rajasthan Royals"
     },
     "Jos Buttler": {
@@ -12109,7 +12109,7 @@
     },
     "Keshav Maharaj": {
       "role": "BOWL",
-      "overseas": false,
+      "overseas": true,
       "team": "Rajasthan Royals"
     },
     "Sandeep Sharma": {
@@ -12134,7 +12134,7 @@
     },
     "Shikhar Dhawan": {
       "role": "BAT",
-      "overseas": true,
+      "overseas": false,
       "team": "Punjab Kings"
     },
     "Jitesh Sharma": {
@@ -12259,7 +12259,7 @@
     },
     "Rishabh Pant": {
       "role": "WK",
-      "overseas": true,
+      "overseas": false,
       "team": "Delhi Capitals"
     },
     "David Warner": {
@@ -12519,12 +12519,12 @@
     },
     "Vijayakanth Viyaskanth": {
       "role": "BOWL",
-      "overseas": true,
+      "overseas": false,
       "team": "Sunrisers Hyderabad"
     },
     "Shubman Gill": {
       "role": "BAT",
-      "overseas": true,
+      "overseas": false,
       "team": "Gujarat Titans"
     },
     "Abhinav Manohar": {
@@ -12659,7 +12659,7 @@
     },
     "KL Rahul": {
       "role": "WK",
-      "overseas": true,
+      "overseas": false,
       "team": "Lucknow Super Giants"
     },
     "Devdutt Padikkal": {

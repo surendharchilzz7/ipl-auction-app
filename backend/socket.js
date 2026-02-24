@@ -46,8 +46,8 @@ initStats();
 module.exports = server => {
   const io = require("socket.io")(server, {
     cors: { origin: "*" },
-    pingInterval: 2000,
-    pingTimeout: 5000
+    pingInterval: 10000,
+    pingTimeout: 20000
   });
 
   io.on("connection", socket => {

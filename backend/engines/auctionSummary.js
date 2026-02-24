@@ -159,8 +159,8 @@ function generateAuctionSummary(room) {
     const auctionBuys = allPlayers.filter(p => !p.retained && !p.rtmUsed);
     const retainedAndRTM = allPlayers.filter(p => p.retained || p.rtmUsed);
 
-    // Top Buys
-    const topBuys = [...auctionBuys]
+    // Top Buys - Only actual auction purchases (exclude auto-filled players)
+    const topBuys = [...auctionBuys.filter(p => !p.autoFilled)]
         .sort((a, b) => (b.soldPrice || 0) - (a.soldPrice || 0))
         .slice(0, 5)
         .map(p => ({
