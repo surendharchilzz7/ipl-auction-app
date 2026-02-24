@@ -293,11 +293,65 @@ module.exports = server => {
         room.auctionPool = room.auctionPool.slice(0, filters.maxPlayers);
       }
 
+      // RE-INTERLEAVE: After filtering, rebuild the pool maintaining BAT→WK→AR→BOWL
+      // role rotation pattern. Without this, deselecting early sets (e.g. BAT1-3)
+      // would leave BAT4 players stranded far after BOWL3.
+      const { SET_ORDER, SET_SIZE } = require("./engines/buildAuctionSets");
+      const byRole = {};
+      SET_ORDER.forEach(role => { byRole[role] = []; });
+      room.auctionPool.forEach(p => {
+        if (byRole[p.role]) byRole[p.role].push(p);
+      });
+
+      // Rebuild pool: interleave roles in SET_SIZE chunks (BAT10, WK5, AR10, BOWL10, ...)
+      const reordered = [];
+      let offset = 0;
+      let hasMore = true;
+      while (hasMore) {
+        hasMore = false;
+        SET_ORDER.forEach(role => {
+          const size = SET_SIZE[role] || 10;
+          const start = offset * size;
+          const chunk = byRole[role].slice(start, start + size);
+          if (chunk.length > 0) {
+            reordered.push(...chunk);
+            hasMore = true;
+          }
+        });
+        offset++;
+      }
+      room.auctionPool = reordered;
+
+      // Rebuild set names, renumbered from 1 (e.g. if BAT1 fully deselected, BAT2 becomes BAT1)
+      room.setOrder = [];
+      const newSets = {};
+      let tierNum = 1;
+      hasMore = true;
+      while (hasMore) {
+        hasMore = false;
+        SET_ORDER.forEach(role => {
+          const size = SET_SIZE[role] || 10;
+          const start = (tierNum - 1) * size;
+          const chunk = byRole[role].slice(start, start + size);
+          if (chunk.length > 0) {
+            const setName = `${role}${tierNum}`;
+            newSets[setName] = chunk;
+            room.setOrder.push(setName);
+            hasMore = true;
+          }
+        });
+        tierNum++;
+      }
+      room.auctionSets = newSets;
+      room.currentSetIndex = 0;
+      room.currentSet = room.setOrder[0] || null;
+
       // Update current player
       room.currentPlayer = room.auctionPool[0] || null;
       room.currentIndex = 0;
 
       console.log(`[Pool] Filtered: ${originalCount} -> ${room.auctionPool.length} players`);
+      console.log(`[Pool] Re-interleaved set order: ${room.setOrder.join(', ')}`);
     }
 
     // Retain players (during retention phase)
