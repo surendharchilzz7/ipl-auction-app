@@ -159,17 +159,24 @@ function generateAuctionSummary(room) {
     const auctionBuys = allPlayers.filter(p => !p.retained && !p.rtmUsed);
     const retainedAndRTM = allPlayers.filter(p => p.retained || p.rtmUsed);
 
-    // Top Buys - Only actual auction purchases (exclude auto-filled players)
-    const topBuys = [...auctionBuys.filter(p => !p.autoFilled)]
-        .sort((a, b) => (b.soldPrice || 0) - (a.soldPrice || 0))
-        .slice(0, 5)
-        .map(p => ({
-            name: p.name,
-            role: p.role,
-            team: p.teamName,
-            price: p.soldPrice || p.basePrice || 0,
-            overseas: p.overseas
-        }));
+    // Top Buys - Prioritize real auction purchases, fallback to auto-filled if needed
+    const realBuys = auctionBuys.filter(p => !p.autoFilled);
+    const autoFilledBuys = auctionBuys.filter(p => p.autoFilled);
+    const sortedReal = [...realBuys].sort((a, b) => (b.soldPrice || 0) - (a.soldPrice || 0));
+    const sortedAutoFill = [...autoFilledBuys].sort((a, b) => (b.soldPrice || 0) - (a.soldPrice || 0));
+
+    // Fill with real buys first, then auto-filled if not enough
+    const topBuysCombined = sortedReal.length >= 5
+        ? sortedReal.slice(0, 5)
+        : [...sortedReal, ...sortedAutoFill].slice(0, 5);
+
+    const topBuys = topBuysCombined.map(p => ({
+        name: p.name,
+        role: p.role,
+        team: p.teamName,
+        price: p.soldPrice || p.basePrice || 0,
+        overseas: p.overseas
+    }));
 
     // Top Retentions
     const topRetentions = [...retainedAndRTM]
