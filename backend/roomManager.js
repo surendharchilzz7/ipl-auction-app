@@ -497,7 +497,7 @@ function selectTeam(roomId, socketId, teamName) {
   console.log(`[SelectTeam] isReclaiming=${isReclaiming}, isAbandoned=${isAbandoned}, username=${username}`);
 
   // Check if team is currently online with a different socket
-  if (team.socketId && team.socketId !== socketId) {
+  if (team.socketId && team.socketId !== socketId && !isReclaiming) {
     console.log(`[SelectTeam] Rejected: Team ${teamName} is currently online with socket ${team.socketId}`);
     return null;
   }
@@ -551,6 +551,14 @@ function handleDisconnect(socketId) {
     const human = room.humans.find(h => h.socketId === socketId);
 
     if (human) {
+      // GUARD: Only process disconnect if this socket still matches.
+      // If user reconnected with a new socket (via joinRoom), the old stale
+      // socket's disconnect event should NOT clear the new active session.
+      if (human.socketId !== socketId) {
+        console.log(`[Disconnect] IGNORED: Stale socket ${socketId} for user ${human.username} (active socket: ${human.socketId})`);
+        return null;
+      }
+
       console.log(`[Disconnect] User ${human.username} (socket: ${socketId}) disconnected from room ${roomId}`);
       human.socketId = null; // Mark as offline
 
